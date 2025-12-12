@@ -27,7 +27,7 @@ jobs:
         run: bun i
 
       - name: Build
-        run: bun run --filter react-ol build
+        run: bun run --filter @mixelburg/react-ol build
 
       - name: Configure npm auth
         run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc

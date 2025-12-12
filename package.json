@@ -1,5 +1,5 @@
 {
-  "name": "react-ol-root",
+  "name": "@mixelburg/react-ol-root",
   "workspaces": [
     "core",
     "docs-app"

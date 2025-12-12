@@ -19,7 +19,7 @@ import {
   ReactMapOverlay,
   reactIconToSrc,
   useMapRef,
-} from "react-ol";
+} from "@mixelburg/react-ol";
 
 const App: FC = () => {
   const mapRef = useMapRef();
