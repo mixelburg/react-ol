@@ -211,6 +211,78 @@ function App() {
 
 ## Advanced Examples
 
+### Feature Clustering
+
+Handle large numbers of points efficiently with clustering:
+
+```tsx
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
+import { OSM } from 'ol/source';
+import { Circle, Fill, Style, Text } from 'ol/style';
+
+// Generate sample data points
+const points = Array.from({ length: 200 }, (_, i) => ({
+  id: i,
+  coords: {
+    lat: 32.0 + (Math.random() - 0.5) * 0.5,
+    long: 34.7 + (Math.random() - 0.5) * 0.5,
+  }
+}));
+
+function App() {
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+      defaultZoom={11}
+      wrapperProps={{ style: { width: '100%', height: '600px' }}}
+    >
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer
+        layerId="clustered-points"
+        clustering={{
+          enabled: true,
+          distance: 40  // Distance in pixels for clustering
+        }}
+        style={(feature) => {
+          const features = feature.get('features');
+          const size = features?.length || 1;
+
+          if (size === 1) {
+            // Style for individual point
+            return new Style({
+              image: new Circle({
+                radius: 6,
+                fill: new Fill({ color: '#3b82f6' })
+              })
+            });
+          }
+
+          // Style for cluster
+          return new Style({
+            image: new Circle({
+              radius: 10 + Math.min(size / 5, 10),
+              fill: new Fill({ color: '#ef4444' })
+            }),
+            text: new Text({
+              text: size.toString(),
+              fill: new Fill({ color: 'white' })
+            })
+          });
+        }}
+      >
+        {points.map(point => (
+          <PointFeature
+            key={point.id}
+            coordinates={point.coords}
+          />
+        ))}
+      </MapVectorLayer>
+    </OpenLayersMap>
+  );
+}
+```
+
 ### Drawing Routes
 
 Draw lines between points:

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useMapContext } from "../map/MapContext";
 import { useMapLayerContext } from "./MapLayerContext";
 import WebGLVectorLayer from "ol/layer/WebGLVector";
+import Cluster from "ol/source/Cluster";
 
 export interface MapFeatureProps {
   feature: Feature;
@@ -35,7 +36,10 @@ export const MapFeature = ({
       return;
     }
 
-    const source = layer.getSource();
+    let source = layer.getSource();
+    if (source instanceof Cluster) {
+      source = source.getSource();
+    }
     if (!(source instanceof VectorSource)) {
       console.warn("MapFeature requires a VectorSource");
       return;

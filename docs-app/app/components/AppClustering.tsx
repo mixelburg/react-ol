@@ -1,17 +1,11 @@
 "use client";
 
-import { Box, Paper, Slider, Stack, Typography, Switch, FormControlLabel } from "@mui/material";
-import { OSM } from "ol/source";
-import { Circle, Fill, Stroke, Style, Text } from "ol/style";
-import { FC, useState, useMemo } from "react";
-import {
-  MapTileLayer,
-  MapVectorLayer,
-  OpenLayersMap,
-  PointFeature,
-  useMapRef,
-} from "@mixelburg/react-ol";
-import {fromLonLat} from "ol/proj";
+import {Box, FormControlLabel, Paper, Slider, Stack, Switch, Typography} from "@mui/material";
+import {OSM} from "ol/source";
+import {Circle, Fill, Stroke, Style, Text} from "ol/style";
+import {FC, useMemo, useState} from "react";
+import {MapTileLayer, MapVectorLayer, OpenLayersMap, PointFeature, useMapRef,} from "@mixelburg/react-ol";
+import CircleStyle from "ol/style/Circle";
 
 // Generate random points in Israel area
 const generateRandomPoints = (count: number) => {
@@ -137,47 +131,34 @@ const AppClustering: FC = () => {
               ? {
                   enabled: true,
                   distance: clusterDistance,
-                  renderCluster: (features, coordinates) => {
-                    const clusterStyle = new Style({
-                      image: new Circle({
-                        radius: 100,
-                        fill: new Fill({ color: "#ef4444" }),
-                        stroke: new Stroke({ color: "white", width: 3 }),
-                      }),
-                      text: new Text({
-                        text: features.length.toString(),
-                        fill: new Fill({ color: "white" }),
-                        font: "bold 14px sans-serif",
-                      }),
-                    });
-
-                    return (
-                      <PointFeature
-                        key={`cluster-${coordinates.lat}-${coordinates.long}`}
-                        coordinates={coordinates}
-                        style={clusterStyle}
-                        properties={{ isCluster: true }}
-                      />
-                    );
-                  },
                 }
               : undefined
           }
+          style={(feature) => {
+            const size = feature.get("features")?.length;
+            if (size === 1) {
+              return pointStyle
+            }
+            return new Style({
+              image: new CircleStyle({
+                radius: 10,
+                fill: new Fill({
+                  color: "tomato",
+                }),
+              }),
+              text: new Text({
+                text: size.toString(),
+                fill: new Fill({
+                  color: '#fff',
+                }),
+              }),
+            });
+          }}
         >
           {points.map((point) => (
             <PointFeature
               key={point.id}
               coordinates={{ lat: point.lat, long: point.long }}
-              style={pointStyle}
-              properties={point}
-              onClick={(feature) => {
-                const props = feature.getProperties();
-                if (!props.isCluster) {
-                  alert(
-                    `Point #${props.id}\nValue: ${props.value}\nLat: ${props.lat.toFixed(4)}, Long: ${props.long.toFixed(4)}`
-                  );
-                }
-              }}
             />
           ))}
         </MapVectorLayer>

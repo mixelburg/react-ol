@@ -1,249 +1,92 @@
 ---
 title: Clustering Demo
-description: Interactive demo showing point clustering
+description: Interactive demo showing point clustering with dynamic controls
 ---
 
 import AppClustering from '../../app/components/AppClustering'
 
 # Clustering Demo
 
-This demo showcases the clustering feature in react-ol. When you have many overlapping features on the map, clustering automatically groups them together based on proximity and zoom level.
+This demo showcases the clustering feature in react-ol. When you have many overlapping features on the map, clustering automatically groups them together based on proximity and zoom level, improving performance and visual clarity.
 
 <AppClustering/>
 
-## How It Works
+## How Clustering Works
 
-Clustering uses OpenLayers' built-in `Cluster` source to group nearby features:
+Clustering groups nearby features into single points on the map. As you zoom in, clusters automatically break apart into individual features or smaller clusters. This is essential for:
 
-1. **Distance Threshold**: Controls how close features must be (in pixels) to be grouped together
-2. **Zoom-Dependent**: As you zoom in, clusters break apart into individual features
-3. **Custom Rendering**: You can render clusters with custom styles and display the count
+- **Performance**: Rendering thousands of features efficiently
+- **Visual Clarity**: Avoiding overlapping markers
+- **User Experience**: Showing data density at a glance
+
+## Key Features
+
+### Dynamic Clustering Control
+
+Toggle clustering on/off to see the difference between clustered and unclustered views with hundreds of points.
+
+### Cluster Distance
+
+Adjust the `distance` parameter (10-150 pixels) to control how aggressively features are grouped:
+- **Lower values** (10-30px): More clusters, tighter grouping
+- **Medium values** (30-60px): Balanced clustering
+- **Higher values** (60-150px): Fewer, larger clusters
+
+### Zoom-Based Behavior
+
+Clusters automatically break apart as you zoom in. Try zooming from level 7 to 15 to see how clusters progressively separate into individual points.
+
+### Custom Styling
+
+The demo shows how to style:
+- **Individual features**: Blue markers when `size === 1`
+- **Clusters**: Red circles with white text showing the feature count
 
 ## Basic Usage
 
 ```tsx
 import { MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
-import { Circle, Fill, Stroke, Style, Text } from 'ol/style';
+import { Circle, Fill, Style, Text } from 'ol/style';
 
-function ClusteredMap() {
-  const points = [
-    { id: 1, lat: 32.08, long: 34.78 },
-    { id: 2, lat: 32.09, long: 34.79 },
-    // ... more points
-  ];
+<MapVectorLayer
+  layerId="clustered-points"
+  clustering={{
+    enabled: true,
+    distance: 40
+  }}
+  style={(feature) => {
+    const size = feature.get('features')?.length || 1;
 
-  return (
-    <OpenLayersMap defaultCenter={{ lat: 32, long: 34 }} defaultZoom={10}>
-      <MapTileLayer source={new OSM()} layerId="osm" />
+    if (size === 1) {
+      return new Style({
+        image: new Circle({
+          radius: 6,
+          fill: new Fill({ color: 'blue' })
+        })
+      });
+    }
 
-      <MapVectorLayer
-        layerId="points"
-        clustering={{
-          enabled: true,
-          distance: 40, // pixels
-          renderCluster: (features) => {
-            const count = features.length;
-            const radius = Math.min(10 + Math.sqrt(count) * 3, 40);
-
-            // Create cluster style
-            const clusterStyle = new Style({
-              image: new Circle({
-                radius: radius,
-                fill: new Fill({ color: '#ef4444' }),
-                stroke: new Stroke({ color: 'white', width: 3 }),
-              }),
-              text: new Text({
-                text: count.toString(),
-                fill: new Fill({ color: 'white' }),
-                font: 'bold 14px sans-serif',
-              }),
-            });
-
-            // Extract coordinates from first feature
-            const geometry = features[0].getGeometry();
-            const coords = geometry.getCoordinates();
-            const [long, lat] = toLonLat(coords);
-
-            return (
-              <PointFeature
-                coordinates={{ lat, long }}
-                style={clusterStyle}
-                properties={{ count, isCluster: true }}
-              />
-            );
-          },
-        }}
-      >
-        {points.map((point) => (
-          <PointFeature
-            key={point.id}
-            coordinates={{ lat: point.lat, long: point.long }}
-            style={pointStyle}
-          />
-        ))}
-      </MapVectorLayer>
-    </OpenLayersMap>
-  );
-}
-```
-
-## Configuration Options
-
-### `clustering.enabled`
-- **Type**: `boolean`
-- **Description**: Enable or disable clustering
-- **Default**: `false`
-
-### `clustering.distance`
-- **Type**: `number`
-- **Description**: Distance in pixels within which features will be clustered together
-- **Default**: `40`
-- **Recommendation**:
-  - Smaller values (20-30): Less aggressive clustering, more clusters
-  - Larger values (60-100): More aggressive clustering, fewer clusters
-
-### `clustering.renderCluster`
-- **Type**: `(features: Feature[]) => ReactNode`
-- **Description**: Function that receives an array of clustered features and returns a React component to render
-- **Parameters**:
-  - `features`: Array of OpenLayers Feature objects that are grouped in this cluster
-- **Returns**: A React component (typically a `PointFeature`) to represent the cluster
-
-## Advanced Examples
-
-### Cluster with Size Based on Count
-
-```tsx
-renderCluster: (features) => {
-  const count = features.length;
-
-  // Logarithmic scaling for better visualization
-  const radius = Math.min(15 + Math.log(count) * 5, 50);
-
-  const style = new Style({
-    image: new Circle({
-      radius: radius,
-      fill: new Fill({
-        color: count > 50 ? '#991b1b' :
-               count > 20 ? '#dc2626' :
-               '#ef4444'
+    return new Style({
+      image: new Circle({
+        radius: 10,
+        fill: new Fill({ color: 'red' })
       }),
-      stroke: new Stroke({ color: 'white', width: 2 }),
-    }),
-    text: new Text({
-      text: count.toString(),
-      fill: new Fill({ color: 'white' }),
-      font: `bold ${Math.min(12 + count / 10, 20)}px sans-serif`,
-    }),
-  });
-
-  const geometry = features[0].getGeometry();
-  const [long, lat] = toLonLat(geometry.getCoordinates());
-
-  return (
-    <PointFeature
-      coordinates={{ lat, long }}
-      style={style}
-    />
-  );
-}
+      text: new Text({
+        text: size.toString(),
+        fill: new Fill({ color: 'white' })
+      })
+    });
+  }}
+>
+  {points.map(point => (
+    <PointFeature key={point.id} coordinates={point.coords} />
+  ))}
+</MapVectorLayer>
 ```
-
-### Cluster with Aggregate Data
-
-```tsx
-renderCluster: (features) => {
-  const count = features.length;
-
-  // Calculate aggregate values
-  const totalValue = features.reduce((sum, f) =>
-    sum + (f.get('value') || 0), 0
-  );
-  const avgValue = totalValue / count;
-
-  const style = new Style({
-    image: new Circle({
-      radius: 20,
-      fill: new Fill({ color: '#3b82f6' }),
-      stroke: new Stroke({ color: 'white', width: 2 }),
-    }),
-    text: new Text({
-      text: `${count}\n$${avgValue.toFixed(0)}`,
-      fill: new Fill({ color: 'white' }),
-      font: 'bold 12px sans-serif',
-    }),
-  });
-
-  const geometry = features[0].getGeometry();
-  const [long, lat] = toLonLat(geometry.getCoordinates());
-
-  return (
-    <PointFeature
-      coordinates={{ lat, long }}
-      style={style}
-      properties={{ count, totalValue, avgValue }}
-      onClick={() => {
-        console.log(`Cluster of ${count} features with avg value ${avgValue}`);
-      }}
-    />
-  );
-}
-```
-
-### Clickable Clusters
-
-```tsx
-renderCluster: (features) => {
-  const count = features.length;
-  const style = new Style({
-    image: new Circle({
-      radius: 15 + Math.sqrt(count) * 2,
-      fill: new Fill({ color: '#8b5cf6' }),
-      stroke: new Stroke({ color: 'white', width: 2 }),
-    }),
-    text: new Text({
-      text: count.toString(),
-      fill: new Fill({ color: 'white' }),
-      font: 'bold 14px sans-serif',
-    }),
-  });
-
-  const geometry = features[0].getGeometry();
-  const [long, lat] = toLonLat(geometry.getCoordinates());
-
-  return (
-    <PointFeature
-      coordinates={{ lat, long }}
-      style={style}
-      onClick={(feature, event) => {
-        event.stopPropagation();
-        // Zoom into cluster
-        mapRef.current?.centerOn({ lat, long });
-        mapRef.current?.setZoom((zoom) => zoom + 2);
-      }}
-    />
-  );
-}
-```
-
-## Performance Tips
-
-1. **Use clustering for 100+ features**: Clustering is most beneficial when you have many overlapping points
-2. **Adjust distance based on zoom**: Consider using different distances for different zoom levels
-3. **Memoize render function**: If your cluster rendering is complex, consider memoizing the render function
-4. **Limit feature properties**: Only include necessary properties in your features to reduce memory usage
-
-## Common Use Cases
-
-- **Store Locators**: Show multiple store locations that cluster when zoomed out
-- **Data Visualization**: Display large datasets of points (weather stations, sensors, etc.)
-- **Event Maps**: Show multiple events happening in the same area
-- **Real Estate**: Display property listings that cluster by neighborhood
-- **IoT Dashboards**: Visualize sensor or device locations across large areas
 
 ## See Also
 
-- [MapVectorLayer API](/docs/api-layers#mapvectorlayer) - Complete API reference
+- [MapVectorLayer API](/docs/api-layers#mapvectorlayer) - Complete API reference including clustering
 - [PointFeature API](/docs/api-features#pointfeature) - Point feature documentation
 - [Live Demo](/docs/demo) - Basic map demo
 - [Examples](/docs/examples) - More examples
