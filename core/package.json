@@ -1,0 +1,35 @@
+{
+  "name": "react-ol",
+  "version": "1.0.0",
+  "description": "",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "rslib build"
+  },
+  "author": "mixelburg",
+  "license": "ISC",
+  "keywords": [
+    "react"
+  ],
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@rslib/core": "^0.18.4",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "ol": "^10.7.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  }
+}

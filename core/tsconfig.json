@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2017", "dom"],
+    "strict": true,
+    "alwaysStrict": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".."
+  },
+  "include": ["./src"]
+}
