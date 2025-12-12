@@ -1,4 +1,186 @@
 ---
 title: Getting Started
-description: hello
+description: A declarative React wrapper for OpenLayers - the powerful open-source mapping library
 ---
+
+# Getting Started
+
+**@mixelburg/react-ol** is a modern, type-safe React library that provides declarative components for building interactive maps powered by OpenLayers. Build beautiful, performant maps using familiar React patterns.
+
+## ✨ Features
+
+- 🎯 **Declarative API** - Build maps using intuitive React components
+- 🎨 **Fully Typed** - Complete TypeScript support with type safety
+- 🚀 **High Performance** - Leverages OpenLayers' efficient rendering
+- 🧩 **Composable** - Mix and match layers, features, and overlays
+- 🎮 **Interactive** - Built-in support for clicks, hovers, and events
+- 🗺️ **Feature Rich** - Points, lines, polygons, circles, and custom shapes
+- 📍 **React Overlays** - Render React components at map coordinates
+- 🌍 **Projection Support** - Automatic coordinate transformation
+
+## 📦 Installation
+
+Install the package using your preferred package manager:
+
+```bash
+# npm
+npm install @mixelburg/react-ol ol
+
+# yarn
+yarn add @mixelburg/react-ol ol
+
+# pnpm
+pnpm add @mixelburg/react-ol ol
+
+# bun
+bun add @mixelburg/react-ol ol
+```
+
+Note: OpenLayers (`ol`) is a peer dependency and must be installed separately.
+
+## 🚀 Quick Start
+
+Here's a minimal example to get you started:
+
+```tsx
+import { OpenLayersMap, MapTileLayer, PointFeature } from '@mixelburg/react-ol';
+import { OSM } from 'ol/source';
+import { Circle, Fill, Style } from 'ol/style';
+import 'ol/ol.css';
+
+function App() {
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+      defaultZoom={13}
+    >
+      {/* Add a base tile layer */}
+      <MapTileLayer source={new OSM()} />
+
+      {/* Add a vector layer with features */}
+      <MapVectorLayer layerId="markers">
+        <PointFeature
+          coordinates={{ lat: 32.0853, long: 34.7818 }}
+          style={new Style({
+            image: new Circle({
+              radius: 8,
+              fill: new Fill({ color: 'red' })
+            })
+          })}
+        />
+      </MapVectorLayer>
+    </OpenLayersMap>
+  );
+}
+```
+
+## 🎯 Core Concepts
+
+### Map Component
+
+The `OpenLayersMap` component is the root container for your map. It can be controlled or uncontrolled:
+
+**Uncontrolled** (default behavior):
+```tsx
+<OpenLayersMap defaultCenter={{ lat: 32, long: 34 }} defaultZoom={10}>
+  {/* children */}
+</OpenLayersMap>
+```
+
+**Controlled** (you manage state):
+```tsx
+const [center, setCenter] = useState({ lat: 32, long: 34 });
+const [zoom, setZoom] = useState(10);
+
+<OpenLayersMap
+  center={center}
+  onCenterChange={setCenter}
+  zoom={zoom}
+  onZoomChange={setZoom}
+>
+  {/* children */}
+</OpenLayersMap>
+```
+
+### Layers
+
+Maps are composed of layers. There are two main types:
+
+1. **Tile Layers** - For base maps (OSM, satellite imagery, etc.)
+2. **Vector Layers** - For drawing features (points, lines, polygons)
+
+```tsx
+<MapTileLayer source={new OSM()} zIndex={0} />
+
+<MapVectorLayer layerId="my-features" zIndex={1}>
+  {/* Add features here */}
+</MapVectorLayer>
+```
+
+### Features
+
+Features are geometric shapes displayed on vector layers:
+
+- `PointFeature` - Single point/marker
+- `LineStringFeature` - Connected line segments
+- `PolygonFeature` - Closed shape
+- `CircleFeature` - Circle with radius
+
+### Overlays
+
+Render React components at specific map coordinates:
+
+```tsx
+<ReactMapOverlay coordinates={{ lat: 32, long: 34 }}>
+  <div style={{ background: 'white', padding: 8 }}>
+    Custom React Content!
+  </div>
+</ReactMapOverlay>
+```
+
+## 🎮 Interactivity
+
+All features support interactive events:
+
+```tsx
+<PointFeature
+  coordinates={{ lat: 32, long: 34 }}
+  onClick={(feature, event) => console.log('Clicked!', feature)}
+  onMouseEnter={(feature, event) => console.log('Hover start')}
+  onMouseExit={(feature, event) => console.log('Hover end')}
+  hoverStyle={highlightStyle} // Style when hovering
+  style={normalStyle}
+/>
+```
+
+## 🔧 Map Ref API
+
+Access map methods imperatively using a ref:
+
+```tsx
+const mapRef = useMapRef();
+
+// Later...
+mapRef.current?.centerOn({ lat: 32, long: 34 }, 15);
+mapRef.current?.fitAll([20, 20, 20, 20]); // Fit all features with padding
+mapRef.current?.getZoom();
+```
+
+## 📚 Next Steps
+
+- Check out the [Live Demo](/docs/demo) for interactive examples
+- Explore the [API Reference](/docs/api) for detailed documentation
+- See [Examples](/docs/examples) for common use cases
+
+## 💡 Tips
+
+- Always import OpenLayers CSS: `import 'ol/ol.css'`
+- Use `layerId` to uniquely identify vector layers
+- Coordinates use `{ lat, long }` format (not `[x, y]`)
+- Features must be children of `MapVectorLayer`
+- Use `zIndex` to control layer stacking order
+
+## 🤝 Contributing
+
+Contributions are welcome! Visit our [GitHub repository](https://github.com/mixelburg/react-ol) to report issues or submit pull requests.
+

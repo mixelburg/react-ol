@@ -1,0 +1,338 @@
+---
+title: Layers API
+description: API reference for MapTileLayer and MapVectorLayer components
+---
+
+# Layers
+
+Layers are the building blocks of your map. They determine what gets rendered and in what order.
+
+## MapTileLayer
+
+The `MapTileLayer` component renders raster tile layers like base maps, satellite imagery, or custom tile servers.
+
+### Import
+
+```tsx
+import { MapTileLayer } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### source (required)
+
+- **Type:** `TileSource` (from OpenLayers)
+- **Description:** The tile source to render
+
+```tsx
+import { OSM, XYZ } from 'ol/source';
+
+// OpenStreetMap
+<MapTileLayer source={new OSM()} />
+
+// Custom tile server
+<MapTileLayer
+  source={new XYZ({
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  })}
+/>
+```
+
+#### zIndex
+
+- **Type:** `number`
+- **Optional**
+- **Description:** Stacking order of the layer (higher values appear on top)
+
+```tsx
+<MapTileLayer source={new OSM()} zIndex={0} />
+```
+
+#### opacity
+
+- **Type:** `number` (0-1)
+- **Optional**
+- **Description:** Layer opacity level
+
+```tsx
+<MapTileLayer source={new OSM()} opacity={0.5} />
+```
+
+#### visible
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether the layer is visible
+
+```tsx
+const [showSatellite, setShowSatellite] = useState(true);
+<MapTileLayer source={satelliteSource} visible={showSatellite} />
+```
+
+### Examples
+
+#### Basic Base Map
+
+```tsx
+import { OSM } from 'ol/source';
+
+<OpenLayersMap>
+  <MapTileLayer source={new OSM()} />
+</OpenLayersMap>
+```
+
+#### Multiple Tile Layers
+
+```tsx
+import { OSM, XYZ } from 'ol/source';
+
+<OpenLayersMap>
+  {/* Base layer */}
+  <MapTileLayer source={new OSM()} zIndex={0} />
+
+  {/* Overlay layer */}
+  <MapTileLayer
+    source={new XYZ({ url: 'https://...' })}
+    zIndex={1}
+    opacity={0.5}
+  />
+</OpenLayersMap>
+```
+
+---
+
+## MapVectorLayer
+
+The `MapVectorLayer` component renders vector features like points, lines, and polygons.
+
+### Import
+
+```tsx
+import { MapVectorLayer } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### layerId (required)
+
+- **Type:** `string`
+- **Description:** Unique identifier for the layer
+
+```tsx
+<MapVectorLayer layerId="markers">
+  {/* features */}
+</MapVectorLayer>
+```
+
+#### style
+
+- **Type:** `StyleLike` (OpenLayers style)
+- **Optional**
+- **Description:** Default style for all features in this layer (can be overridden per feature)
+
+```tsx
+import { Circle, Fill, Style } from 'ol/style';
+
+const layerStyle = new Style({
+  image: new Circle({
+    radius: 6,
+    fill: new Fill({ color: 'blue' })
+  })
+});
+
+<MapVectorLayer layerId="points" style={layerStyle}>
+  {/* All points will use this style by default */}
+</MapVectorLayer>
+```
+
+#### features
+
+- **Type:** `Feature[]` (OpenLayers features)
+- **Optional**
+- **Description:** Array of OpenLayers features to display (alternative to using feature components as children)
+
+```tsx
+import { Feature } from 'ol';
+import { Point } from 'ol/geom';
+
+const features = [
+  new Feature({ geometry: new Point([...]) }),
+  // more features...
+];
+
+<MapVectorLayer layerId="bulk" features={features} />
+```
+
+#### zIndex
+
+- **Type:** `number`
+- **Optional**
+- **Description:** Stacking order of the layer
+
+```tsx
+<MapVectorLayer layerId="background" zIndex={1} />
+<MapVectorLayer layerId="foreground" zIndex={2} />
+```
+
+#### visible
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether the layer is visible
+
+```tsx
+const [showMarkers, setShowMarkers] = useState(true);
+<MapVectorLayer layerId="markers" visible={showMarkers}>
+  {/* features */}
+</MapVectorLayer>
+```
+
+#### children
+
+- **Type:** `ReactNode`
+- **Optional**
+- **Description:** Feature components to render in this layer
+
+```tsx
+<MapVectorLayer layerId="my-features">
+  <PointFeature coordinates={{ lat: 32, long: 34 }} />
+  <LineStringFeature coordinates={[...]} />
+  <PolygonFeature coordinates={[...]} />
+</MapVectorLayer>
+```
+
+### Examples
+
+#### Basic Vector Layer
+
+```tsx
+<MapVectorLayer layerId="markers">
+  <PointFeature
+    coordinates={{ lat: 32.0853, long: 34.7818 }}
+    style={new Style({
+      image: new Circle({
+        radius: 8,
+        fill: new Fill({ color: 'red' })
+      })
+    })}
+  />
+</MapVectorLayer>
+```
+
+#### Layer with Default Style
+
+```tsx
+import { Circle, Fill, Style } from 'ol/style';
+
+const markerStyle = new Style({
+  image: new Circle({
+    radius: 6,
+    fill: new Fill({ color: 'blue' })
+  })
+});
+
+<MapVectorLayer layerId="markers" style={markerStyle}>
+  {/* All features inherit the style */}
+  <PointFeature coordinates={{ lat: 32, long: 34 }} />
+  <PointFeature coordinates={{ lat: 32.1, long: 34.1 }} />
+
+  {/* This one overrides the default */}
+  <PointFeature
+    coordinates={{ lat: 32.2, long: 34.2 }}
+    style={new Style({
+      image: new Circle({
+        radius: 10,
+        fill: new Fill({ color: 'red' })
+      })
+    })}
+  />
+</MapVectorLayer>
+```
+
+#### Toggling Layer Visibility
+
+```tsx
+function MyMap() {
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showPolygons, setShowPolygons] = useState(true);
+
+  return (
+    <div>
+      <button onClick={() => setShowMarkers(!showMarkers)}>
+        Toggle Markers
+      </button>
+      <button onClick={() => setShowPolygons(!showPolygons)}>
+        Toggle Polygons
+      </button>
+
+      <OpenLayersMap>
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="markers" visible={showMarkers}>
+          <PointFeature coordinates={{ lat: 32, long: 34 }} />
+        </MapVectorLayer>
+
+        <MapVectorLayer layerId="polygons" visible={showPolygons}>
+          <PolygonFeature coordinates={[...]} />
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+#### Organizing Complex Maps
+
+```tsx
+<OpenLayersMap>
+  {/* Base layer at the bottom */}
+  <MapTileLayer source={new OSM()} zIndex={0} />
+
+  {/* Background features */}
+  <MapVectorLayer layerId="zones" zIndex={1}>
+    <PolygonFeature coordinates={zoneCoords} />
+  </MapVectorLayer>
+
+  {/* Roads/paths */}
+  <MapVectorLayer layerId="roads" zIndex={2}>
+    <LineStringFeature coordinates={roadCoords} />
+  </MapVectorLayer>
+
+  {/* Points of interest on top */}
+  <MapVectorLayer layerId="pois" zIndex={3}>
+    <PointFeature coordinates={poi1} />
+    <PointFeature coordinates={poi2} />
+  </MapVectorLayer>
+</OpenLayersMap>
+```
+
+## Layer Ordering
+
+Layers are rendered in order based on their `zIndex` prop:
+
+- **Lower zIndex** = rendered first (bottom)
+- **Higher zIndex** = rendered last (top)
+- **No zIndex** = rendered in DOM order
+
+```tsx
+<MapTileLayer source={new OSM()} zIndex={0} />        {/* Bottom */}
+<MapVectorLayer layerId="areas" zIndex={1} />         {/* Middle */}
+<MapVectorLayer layerId="markers" zIndex={2} />       {/* Top */}
+```
+
+## Performance Tips
+
+1. **Limit feature count**: For many features, consider clustering or pagination
+2. **Use appropriate zoom levels**: Hide detailed features at low zoom
+3. **Optimize styles**: Reuse style instances instead of creating new ones
+4. **Layer visibility**: Hide layers when not needed instead of unmounting
+
+```tsx
+// ✅ Good: Reuse style
+const markerStyle = new Style({ ... });
+<MapVectorLayer style={markerStyle} />
+
+// ❌ Less optimal: Create new style on each render
+<MapVectorLayer style={new Style({ ... })} />
+```
+

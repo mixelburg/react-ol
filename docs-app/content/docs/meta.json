@@ -1,4 +1,13 @@
 {
-  "title": "useMuiForm Documentation",
-  "pages": ["index", "demo"]
+  "title": "React-OL Documentation",
+  "pages": [
+    "index",
+    "demo",
+    "examples",
+    "---Getting Started",
+    "api-map",
+    "api-layers",
+    "api-features",
+    "api-overlays"
+  ]
 }

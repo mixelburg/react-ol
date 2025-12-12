@@ -1,0 +1,720 @@
+---
+title: Features API
+description: Complete API reference for all feature components
+---
+
+# Features
+
+Features are geometric shapes that you can render on vector layers. All features support styling, interactivity, and can have custom properties attached.
+
+## Common Props
+
+All feature components share these common props:
+
+### style
+
+- **Type:** `StyleLike` (OpenLayers style)
+- **Optional**
+- **Description:** Visual style for the feature
+
+```tsx
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+const myStyle = new Style({
+  image: new Circle({
+    radius: 8,
+    fill: new Fill({ color: 'red' }),
+    stroke: new Stroke({ color: 'white', width: 2 })
+  })
+});
+
+<PointFeature coordinates={{ lat: 32, long: 34 }} style={myStyle} />
+```
+
+### hoverStyle
+
+- **Type:** `StyleLike` (OpenLayers style)
+- **Optional**
+- **Description:** Style to apply when the feature is hovered
+
+```tsx
+const normalStyle = new Style({ ... });
+const hoverStyle = new Style({ ... });
+
+<PointFeature
+  coordinates={{ lat: 32, long: 34 }}
+  style={normalStyle}
+  hoverStyle={hoverStyle}
+/>
+```
+
+### properties
+
+- **Type:** `Record<string, any>`
+- **Default:** `{}`
+- **Description:** Custom data to attach to the feature (accessible in event handlers)
+
+```tsx
+<PointFeature
+  coordinates={{ lat: 32, long: 34 }}
+  properties={{
+    name: 'Tel Aviv',
+    population: 460000,
+    type: 'city'
+  }}
+  onClick={(feature) => {
+    console.log(feature.get('name')); // 'Tel Aviv'
+    console.log(feature.get('population')); // 460000
+  }}
+/>
+```
+
+### visible
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether the feature is visible
+
+```tsx
+const [showMarker, setShowMarker] = useState(true);
+<PointFeature coordinates={{ lat: 32, long: 34 }} visible={showMarker} />
+```
+
+### onClick
+
+- **Type:** `(feature: Feature, event: any) => void`
+- **Optional**
+- **Description:** Callback when the feature is clicked
+
+```tsx
+<PointFeature
+  coordinates={{ lat: 32, long: 34 }}
+  onClick={(feature, event) => {
+    console.log('Clicked!', feature.getGeometry());
+  }}
+/>
+```
+
+### onMouseEnter
+
+- **Type:** `(feature: Feature, event: any) => void`
+- **Optional**
+- **Description:** Callback when the mouse enters the feature
+
+```tsx
+<PointFeature
+  coordinates={{ lat: 32, long: 34 }}
+  onMouseEnter={(feature, event) => {
+    console.log('Hover started');
+  }}
+/>
+```
+
+### onMouseExit
+
+- **Type:** `(feature: Feature, event: any) => void`
+- **Optional**
+- **Description:** Callback when the mouse leaves the feature
+
+```tsx
+<PointFeature
+  coordinates={{ lat: 32, long: 34 }}
+  onMouseExit={(feature, event) => {
+    console.log('Hover ended');
+  }}
+/>
+```
+
+---
+
+## PointFeature
+
+Renders a single point at specified coordinates. Typically styled with a circle, icon, or custom symbol.
+
+### Import
+
+```tsx
+import { PointFeature } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### coordinates (required)
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Description:** The point's location
+
+```tsx
+<PointFeature coordinates={{ lat: 32.0853, long: 34.7818 }} />
+```
+
+### Examples
+
+#### Basic Marker
+
+```tsx
+import { Circle, Fill, Style } from 'ol/style';
+
+<MapVectorLayer layerId="markers">
+  <PointFeature
+    coordinates={{ lat: 32.0853, long: 34.7818 }}
+    style={new Style({
+      image: new Circle({
+        radius: 8,
+        fill: new Fill({ color: '#FF0000' })
+      })
+    })}
+  />
+</MapVectorLayer>
+```
+
+#### Interactive Marker
+
+```tsx
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+import { useState } from 'react';
+
+function MyMap() {
+  const [selectedPlace, setSelectedPlace] = useState(null);
+
+  const markerStyle = new Style({
+    image: new Circle({
+      radius: 8,
+      fill: new Fill({ color: '#3b82f6' }),
+      stroke: new Stroke({ color: 'white', width: 2 })
+    })
+  });
+
+  const hoverStyle = new Style({
+    image: new Circle({
+      radius: 12,
+      fill: new Fill({ color: '#ef4444' }),
+      stroke: new Stroke({ color: 'white', width: 2 })
+    })
+  });
+
+  return (
+    <OpenLayersMap>
+      <MapTileLayer source={new OSM()} />
+      <MapVectorLayer layerId="places">
+        <PointFeature
+          coordinates={{ lat: 32.0853, long: 34.7818 }}
+          style={markerStyle}
+          hoverStyle={hoverStyle}
+          properties={{ name: 'Tel Aviv', type: 'city' }}
+          onClick={(feature) => {
+            setSelectedPlace(feature.get('name'));
+          }}
+        />
+      </MapVectorLayer>
+    </OpenLayersMap>
+  );
+}
+```
+
+#### Icon Marker
+
+```tsx
+import { Icon, Style } from 'ol/style';
+
+<PointFeature
+  coordinates={{ lat: 32.0853, long: 34.7818 }}
+  style={new Style({
+    image: new Icon({
+      src: 'https://example.com/marker.png',
+      scale: 0.5,
+      anchor: [0.5, 1], // Bottom center
+    })
+  })}
+/>
+```
+
+#### React Icon as Marker
+
+```tsx
+import { Icon, Style } from 'ol/style';
+import { FaMapMarkerAlt } from 'react-icons/fa';
+import { reactIconToSrc } from '@mixelburg/react-ol';
+
+const iconSrc = reactIconToSrc(
+  <FaMapMarkerAlt size={32} color="#ef4444" />
+);
+
+<PointFeature
+  coordinates={{ lat: 32.0853, long: 34.7818 }}
+  style={new Style({
+    image: new Icon({
+      src: iconSrc,
+      anchor: [0.5, 1],
+    })
+  })}
+/>
+```
+
+---
+
+## LineStringFeature
+
+Renders a line through multiple coordinates. Useful for routes, paths, boundaries, etc.
+
+### Import
+
+```tsx
+import { LineStringFeature } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### coordinates (required)
+
+- **Type:** `Coordinates[]` (array of `{ lat: number, long: number }`)
+- **Description:** Array of points that define the line
+
+```tsx
+<LineStringFeature
+  coordinates={[
+    { lat: 32.0, long: 34.0 },
+    { lat: 32.1, long: 34.1 },
+    { lat: 32.2, long: 34.2 },
+  ]}
+/>
+```
+
+### Examples
+
+#### Basic Line
+
+```tsx
+import { Stroke, Style } from 'ol/style';
+
+<MapVectorLayer layerId="routes">
+  <LineStringFeature
+    coordinates={[
+      { lat: 32.0853, long: 34.7818 },
+      { lat: 32.0900, long: 34.7900 },
+      { lat: 32.0950, long: 34.8000 },
+    ]}
+    style={new Style({
+      stroke: new Stroke({
+        color: '#3b82f6',
+        width: 3
+      })
+    })}
+  />
+</MapVectorLayer>
+```
+
+#### Dashed Line
+
+```tsx
+import { Stroke, Style } from 'ol/style';
+
+<LineStringFeature
+  coordinates={pathCoordinates}
+  style={new Style({
+    stroke: new Stroke({
+      color: '#10b981',
+      width: 2,
+      lineDash: [10, 5] // 10px line, 5px gap
+    })
+  })}
+/>
+```
+
+#### Interactive Route
+
+```tsx
+import { Stroke, Style } from 'ol/style';
+
+const routeStyle = new Style({
+  stroke: new Stroke({
+    color: '#3b82f6',
+    width: 3
+  })
+});
+
+const hoverStyle = new Style({
+  stroke: new Stroke({
+    color: '#ef4444',
+    width: 5
+  })
+});
+
+<LineStringFeature
+  coordinates={routeCoordinates}
+  style={routeStyle}
+  hoverStyle={hoverStyle}
+  properties={{
+    name: 'Route 1',
+    distance: '5.2 km',
+    duration: '15 min'
+  }}
+  onClick={(feature) => {
+    console.log('Route clicked:', feature.get('name'));
+  }}
+/>
+```
+
+---
+
+## PolygonFeature
+
+Renders a closed shape defined by coordinates. The first and last points are automatically connected.
+
+### Import
+
+```tsx
+import { PolygonFeature } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### coordinates (required)
+
+- **Type:** `Coordinates[]` (array of `{ lat: number, long: number }`)
+- **Description:** Array of points that define the polygon boundary
+
+```tsx
+<PolygonFeature
+  coordinates={[
+    { lat: 32.0, long: 34.0 },
+    { lat: 32.1, long: 34.0 },
+    { lat: 32.1, long: 34.1 },
+    { lat: 32.0, long: 34.1 },
+    // Note: Last point connects back to first automatically
+  ]}
+/>
+```
+
+### Examples
+
+#### Basic Polygon
+
+```tsx
+import { Fill, Stroke, Style } from 'ol/style';
+
+<MapVectorLayer layerId="zones">
+  <PolygonFeature
+    coordinates={[
+      { lat: 32.08, long: 34.78 },
+      { lat: 32.09, long: 34.78 },
+      { lat: 32.09, long: 34.79 },
+      { lat: 32.08, long: 34.79 },
+    ]}
+    style={new Style({
+      fill: new Fill({
+        color: 'rgba(59, 130, 246, 0.2)' // Semi-transparent blue
+      }),
+      stroke: new Stroke({
+        color: '#3b82f6',
+        width: 2
+      })
+    })}
+  />
+</MapVectorLayer>
+```
+
+#### Clickable Area
+
+```tsx
+import { Fill, Stroke, Style } from 'ol/style';
+
+const zoneStyle = new Style({
+  fill: new Fill({ color: 'rgba(16, 185, 129, 0.2)' }),
+  stroke: new Stroke({ color: '#10b981', width: 2 })
+});
+
+const selectedStyle = new Style({
+  fill: new Fill({ color: 'rgba(239, 68, 68, 0.3)' }),
+  stroke: new Stroke({ color: '#ef4444', width: 3 })
+});
+
+function MyMap() {
+  const [selectedZone, setSelectedZone] = useState(null);
+
+  return (
+    <MapVectorLayer layerId="zones">
+      <PolygonFeature
+        coordinates={zoneCoordinates}
+        style={selectedZone === 'zone1' ? selectedStyle : zoneStyle}
+        properties={{ id: 'zone1', name: 'Downtown Area' }}
+        onClick={(feature) => {
+          setSelectedZone(feature.get('id'));
+        }}
+      />
+    </MapVectorLayer>
+  );
+}
+```
+
+#### Pattern Fill
+
+```tsx
+import { Fill, Stroke, Style } from 'ol/style';
+
+<PolygonFeature
+  coordinates={areaCoordinates}
+  style={new Style({
+    fill: new Fill({
+      color: 'rgba(251, 191, 36, 0.3)'
+    }),
+    stroke: new Stroke({
+      color: '#f59e0b',
+      width: 2,
+      lineDash: [5, 5]
+    })
+  })}
+/>
+```
+
+---
+
+## CircleFeature
+
+Renders a circle with a center point and radius. The radius is specified in meters.
+
+### Import
+
+```tsx
+import { CircleFeature } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### center (required)
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Description:** Center point of the circle
+
+#### radius (required)
+
+- **Type:** `number`
+- **Description:** Radius in meters
+
+```tsx
+<CircleFeature
+  center={{ lat: 32.0853, long: 34.7818 }}
+  radius={1000} // 1 kilometer radius
+/>
+```
+
+### Examples
+
+#### Basic Circle
+
+```tsx
+import { Fill, Stroke, Style } from 'ol/style';
+
+<MapVectorLayer layerId="ranges">
+  <CircleFeature
+    center={{ lat: 32.0853, long: 34.7818 }}
+    radius={1000} // 1km
+    style={new Style({
+      fill: new Fill({
+        color: 'rgba(59, 130, 246, 0.2)'
+      }),
+      stroke: new Stroke({
+        color: '#3b82f6',
+        width: 2
+      })
+    })}
+  />
+</MapVectorLayer>
+```
+
+#### Range Indicator
+
+```tsx
+import { Fill, Stroke, Style } from 'ol/style';
+
+<CircleFeature
+  center={{ lat: 32.0853, long: 34.7818 }}
+  radius={500}
+  style={new Style({
+    fill: new Fill({
+      color: 'rgba(16, 185, 129, 0.15)'
+    }),
+    stroke: new Stroke({
+      color: '#10b981',
+      width: 2,
+      lineDash: [10, 5]
+    })
+  })}
+  properties={{
+    type: 'delivery-range',
+    radius: '500m'
+  }}
+/>
+```
+
+#### Concentric Circles
+
+```tsx
+import { Fill, Stroke, Style } from 'ol/style';
+
+const center = { lat: 32.0853, long: 34.7818 };
+
+<MapVectorLayer layerId="ranges">
+  {/* Outer circle */}
+  <CircleFeature
+    center={center}
+    radius={2000}
+    style={new Style({
+      fill: new Fill({ color: 'rgba(239, 68, 68, 0.1)' }),
+      stroke: new Stroke({ color: '#ef4444', width: 1 })
+    })}
+  />
+
+  {/* Middle circle */}
+  <CircleFeature
+    center={center}
+    radius={1000}
+    style={new Style({
+      fill: new Fill({ color: 'rgba(251, 191, 36, 0.15)' }),
+      stroke: new Stroke({ color: '#f59e0b', width: 1 })
+    })}
+  />
+
+  {/* Inner circle */}
+  <CircleFeature
+    center={center}
+    radius={500}
+    style={new Style({
+      fill: new Fill({ color: 'rgba(16, 185, 129, 0.2)' }),
+      stroke: new Stroke({ color: '#10b981', width: 2 })
+    })}
+  />
+</MapVectorLayer>
+```
+
+---
+
+## Complete Example
+
+Here's a comprehensive example showing all feature types together:
+
+```tsx
+import { useState } from 'react';
+import {
+  OpenLayersMap,
+  MapTileLayer,
+  MapVectorLayer,
+  PointFeature,
+  LineStringFeature,
+  PolygonFeature,
+  CircleFeature,
+} from '@mixelburg/react-ol';
+import { OSM } from 'ol/source';
+import { Circle, Fill, Icon, Stroke, Style } from 'ol/style';
+
+function MyMap() {
+  const [selectedFeature, setSelectedFeature] = useState(null);
+
+  const pointStyle = new Style({
+    image: new Circle({
+      radius: 8,
+      fill: new Fill({ color: '#3b82f6' }),
+      stroke: new Stroke({ color: 'white', width: 2 })
+    })
+  });
+
+  const lineStyle = new Style({
+    stroke: new Stroke({
+      color: '#10b981',
+      width: 3
+    })
+  });
+
+  const polygonStyle = new Style({
+    fill: new Fill({ color: 'rgba(251, 191, 36, 0.2)' }),
+    stroke: new Stroke({ color: '#f59e0b', width: 2 })
+  });
+
+  const circleStyle = new Style({
+    fill: new Fill({ color: 'rgba(239, 68, 68, 0.1)' }),
+    stroke: new Stroke({ color: '#ef4444', width: 2 })
+  });
+
+  return (
+    <div>
+      {selectedFeature && (
+        <div>Selected: {selectedFeature}</div>
+      )}
+
+      <OpenLayersMap
+        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+        defaultZoom={13}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="all-features">
+          {/* Point marker */}
+          <PointFeature
+            coordinates={{ lat: 32.0853, long: 34.7818 }}
+            style={pointStyle}
+            properties={{ name: 'City Center', type: 'poi' }}
+            onClick={(feature) => setSelectedFeature(feature.get('name'))}
+          />
+
+          {/* Line path */}
+          <LineStringFeature
+            coordinates={[
+              { lat: 32.08, long: 34.77 },
+              { lat: 32.085, long: 34.775 },
+              { lat: 32.09, long: 34.78 },
+            ]}
+            style={lineStyle}
+            properties={{ name: 'Main Road' }}
+            onClick={(feature) => setSelectedFeature(feature.get('name'))}
+          />
+
+          {/* Polygon area */}
+          <PolygonFeature
+            coordinates={[
+              { lat: 32.075, long: 34.785 },
+              { lat: 32.080, long: 34.785 },
+              { lat: 32.080, long: 34.790 },
+              { lat: 32.075, long: 34.790 },
+            ]}
+            style={polygonStyle}
+            properties={{ name: 'Park Zone' }}
+            onClick={(feature) => setSelectedFeature(feature.get('name'))}
+          />
+
+          {/* Circle range */}
+          <CircleFeature
+            center={{ lat: 32.0853, long: 34.7818 }}
+            radius={500}
+            style={circleStyle}
+            properties={{ name: '500m Range' }}
+            onClick={(feature) => setSelectedFeature(feature.get('name'))}
+          />
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+## Styling Tips
+
+1. **Reuse Style Objects**: Create style instances once and reuse them for better performance
+2. **Semi-transparent Fills**: Use `rgba()` colors with alpha < 1 for overlapping areas
+3. **Stroke Width**: Thicker strokes (3-5px) are easier to click/hover
+4. **Line Dash**: Use `lineDash: [10, 5]` for dashed/dotted lines
+5. **Anchor Points**: For icons, set anchor to `[0.5, 1]` to position at bottom-center
+
+```tsx
+// ✅ Good: Reuse styles
+const markerStyle = new Style({ ... });
+features.map(coords => (
+  <PointFeature coordinates={coords} style={markerStyle} />
+))
+
+// ❌ Less optimal: Create new style each time
+features.map(coords => (
+  <PointFeature coordinates={coords} style={new Style({ ... })} />
+))
+```
+

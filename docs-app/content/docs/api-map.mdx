@@ -1,0 +1,281 @@
+---
+title: Map Component API
+description: Complete API reference for the OpenLayersMap component
+---
+
+# OpenLayersMap
+
+The `OpenLayersMap` component is the root container for all map functionality. It manages the OpenLayers map instance and provides context to child components.
+
+## Import
+
+```tsx
+import { OpenLayersMap } from '@mixelburg/react-ol';
+```
+
+## Props
+
+### defaultCenter
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Default:** `{ lat: 0, long: 0 }`
+- **Description:** Initial center position of the map (uncontrolled mode)
+
+```tsx
+<OpenLayersMap defaultCenter={{ lat: 32.0853, long: 34.7818 }} />
+```
+
+### defaultZoom
+
+- **Type:** `number`
+- **Default:** `8`
+- **Description:** Initial zoom level of the map (uncontrolled mode)
+
+```tsx
+<OpenLayersMap defaultZoom={13} />
+```
+
+### center
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Optional**
+- **Description:** Current center position (controlled mode). When provided, the component becomes controlled.
+
+```tsx
+const [center, setCenter] = useState({ lat: 32, long: 34 });
+<OpenLayersMap center={center} onCenterChange={setCenter} />
+```
+
+### onCenterChange
+
+- **Type:** `(center: Coordinates) => void`
+- **Optional**
+- **Description:** Callback fired when the map center changes (panning, dragging)
+
+### zoom
+
+- **Type:** `number`
+- **Optional**
+- **Description:** Current zoom level (controlled mode). When provided, the component becomes controlled.
+
+```tsx
+const [zoom, setZoom] = useState(13);
+<OpenLayersMap zoom={zoom} onZoomChange={setZoom} />
+```
+
+### onZoomChange
+
+- **Type:** `(zoom: number) => void`
+- **Optional**
+- **Description:** Callback fired when the zoom level changes
+
+### onClick
+
+- **Type:** `(coordinate: Coordinates, event: MapBrowserEvent) => void`
+- **Optional**
+- **Description:** Callback fired when the map is clicked
+
+```tsx
+<OpenLayersMap
+  onClick={(coord, event) => {
+    console.log('Clicked at:', coord.lat, coord.long);
+  }}
+/>
+```
+
+### wrapperProps
+
+- **Type:** `React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>`
+- **Optional**
+- **Description:** Props to pass to the wrapper div element (className, style, etc.)
+
+```tsx
+<OpenLayersMap
+  wrapperProps={{
+    style: { width: '100%', height: '600px' },
+    className: 'my-map-container'
+  }}
+/>
+```
+
+### children
+
+- **Type:** `ReactNode`
+- **Optional**
+- **Description:** Child components (layers, features, overlays)
+
+## Ref API
+
+Access map methods using a ref created with `useMapRef()`:
+
+```tsx
+import { useMapRef } from '@mixelburg/react-ol';
+
+const mapRef = useMapRef();
+```
+
+### getMap()
+
+- **Returns:** `OLMap | null`
+- **Description:** Get the underlying OpenLayers Map instance
+
+```tsx
+const olMap = mapRef.current?.getMap();
+```
+
+### centerOn(coordinate, zoom?)
+
+- **Parameters:**
+  - `coordinate: Coordinates` - Target coordinates
+  - `zoom?: number` - Optional zoom level
+- **Description:** Center the map on specific coordinates
+
+```tsx
+mapRef.current?.centerOn({ lat: 32.0853, long: 34.7818 }, 15);
+```
+
+### getCenter()
+
+- **Returns:** `Coordinates | null`
+- **Description:** Get the current map center
+
+```tsx
+const center = mapRef.current?.getCenter();
+console.log(center?.lat, center?.long);
+```
+
+### getZoom()
+
+- **Returns:** `number | null`
+- **Description:** Get the current zoom level
+
+```tsx
+const zoom = mapRef.current?.getZoom();
+```
+
+### setZoom(zoom)
+
+- **Parameters:** `zoom: number`
+- **Description:** Set the zoom level
+
+```tsx
+mapRef.current?.setZoom(15);
+```
+
+### fitToExtent(extent?)
+
+- **Parameters:** `extent?: number[]` - Optional extent `[minX, minY, maxX, maxY]`
+- **Description:** Fit the map to a specific extent
+
+```tsx
+mapRef.current?.fitToExtent([minX, minY, maxX, maxY]);
+```
+
+### fitAll(padding?)
+
+- **Parameters:** `padding?: number | number[]` - Padding in pixels
+- **Description:** Fit the map to show all features. Padding can be:
+  - Single number: same padding on all sides
+  - Array `[top, right, bottom, left]`
+
+```tsx
+// Same padding on all sides
+mapRef.current?.fitAll(20);
+
+// Different padding per side
+mapRef.current?.fitAll([20, 40, 20, 40]);
+```
+
+### getLayers()
+
+- **Returns:** `MapLayersMap` (Record of layer IDs to layer instances)
+- **Description:** Get all map layers
+
+```tsx
+const layers = mapRef.current?.getLayers();
+```
+
+## Usage Examples
+
+### Uncontrolled Map
+
+```tsx
+function MyMap() {
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+      defaultZoom={13}
+      wrapperProps={{ style: { width: '100%', height: '500px' }}}
+    >
+      <MapTileLayer source={new OSM()} />
+    </OpenLayersMap>
+  );
+}
+```
+
+### Controlled Map with State
+
+```tsx
+function MyMap() {
+  const [center, setCenter] = useState({ lat: 32.0853, long: 34.7818 });
+  const [zoom, setZoom] = useState(13);
+
+  return (
+    <div>
+      <div>
+        <button onClick={() => setZoom(zoom + 1)}>Zoom In</button>
+        <button onClick={() => setZoom(zoom - 1)}>Zoom Out</button>
+      </div>
+
+      <OpenLayersMap
+        center={center}
+        onCenterChange={setCenter}
+        zoom={zoom}
+        onZoomChange={setZoom}
+        wrapperProps={{ style: { width: '100%', height: '500px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+### Using Map Ref
+
+```tsx
+function MyMap() {
+  const mapRef = useMapRef();
+
+  const flyToLocation = () => {
+    mapRef.current?.centerOn({ lat: 40.7128, long: -74.0060 }, 12);
+  };
+
+  const fitAllFeatures = () => {
+    mapRef.current?.fitAll([50, 50, 50, 50]);
+  };
+
+  return (
+    <div>
+      <button onClick={flyToLocation}>Go to NYC</button>
+      <button onClick={fitAllFeatures}>Fit All</button>
+
+      <OpenLayersMap
+        ref={mapRef}
+        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+        defaultZoom={13}
+      >
+        {/* layers and features */}
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+## Notes
+
+- The map component automatically handles coordinate transformation between lat/long (EPSG:4326) and Web Mercator (EPSG:3857)
+- In controlled mode, the component will update when `center` or `zoom` props change
+- The map creates an OpenLayers `View` with projection `"EPSG:3857"` by default
+- Click events provide coordinates in lat/long format for convenience
+

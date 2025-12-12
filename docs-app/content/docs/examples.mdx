@@ -1,0 +1,731 @@
+---
+title: Examples
+description: Practical examples and common use cases
+---
+
+# Examples
+
+This page contains practical examples and common use cases for react-ol.
+
+## Basic Examples
+
+### Simple Map
+
+The most basic map with a tile layer:
+
+```tsx
+import { OpenLayersMap, MapTileLayer } from '@mixelburg/react-ol';
+import { OSM } from 'ol/source';
+import 'ol/ol.css';
+
+function App() {
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+      defaultZoom={10}
+      wrapperProps={{ style: { width: '100%', height: '600px' }}}
+    >
+      <MapTileLayer source={new OSM()} />
+    </OpenLayersMap>
+  );
+}
+```
+
+### Map with Markers
+
+Add interactive markers to your map:
+
+```tsx
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
+import { OSM } from 'ol/source';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+const markerStyle = new Style({
+  image: new Circle({
+    radius: 8,
+    fill: new Fill({ color: '#ef4444' }),
+    stroke: new Stroke({ color: 'white', width: 2 })
+  })
+});
+
+function App() {
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+      defaultZoom={13}
+      wrapperProps={{ style: { width: '100%', height: '600px' }}}
+    >
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer layerId="markers">
+        <PointFeature
+          coordinates={{ lat: 32.0853, long: 34.7818 }}
+          style={markerStyle}
+        />
+        <PointFeature
+          coordinates={{ lat: 32.0900, long: 34.7900 }}
+          style={markerStyle}
+        />
+      </MapVectorLayer>
+    </OpenLayersMap>
+  );
+}
+```
+
+## Interactive Examples
+
+### Click Handler
+
+Handle map and feature clicks:
+
+```tsx
+import { useState } from 'react';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
+
+function App() {
+  const [lastClick, setLastClick] = useState(null);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+
+  return (
+    <div>
+      <div style={{ padding: 16 }}>
+        {lastClick && <div>Last click: {lastClick.lat.toFixed(4)}, {lastClick.long.toFixed(4)}</div>}
+        {selectedMarker && <div>Selected: {selectedMarker}</div>}
+      </div>
+
+      <OpenLayersMap
+        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+        defaultZoom={13}
+        onClick={(coords) => setLastClick(coords)}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="markers">
+          <PointFeature
+            coordinates={{ lat: 32.0853, long: 34.7818 }}
+            properties={{ name: 'Marker 1' }}
+            onClick={(feature, event) => {
+              event.stopPropagation(); // Prevent map click
+              setSelectedMarker(feature.get('name'));
+            }}
+          />
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+### Hover Effects
+
+Show hover effects on features:
+
+```tsx
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+const normalStyle = new Style({
+  image: new Circle({
+    radius: 8,
+    fill: new Fill({ color: '#3b82f6' }),
+    stroke: new Stroke({ color: 'white', width: 2 })
+  })
+});
+
+const hoverStyle = new Style({
+  image: new Circle({
+    radius: 12,
+    fill: new Fill({ color: '#ef4444' }),
+    stroke: new Stroke({ color: 'white', width: 3 })
+  })
+});
+
+function App() {
+  return (
+    <OpenLayersMap defaultCenter={{ lat: 32, long: 34 }} defaultZoom={13}>
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer layerId="markers">
+        <PointFeature
+          coordinates={{ lat: 32.0853, long: 34.7818 }}
+          style={normalStyle}
+          hoverStyle={hoverStyle}
+          onMouseEnter={(feature) => console.log('Hover start')}
+          onMouseExit={(feature) => console.log('Hover end')}
+        />
+      </MapVectorLayer>
+    </OpenLayersMap>
+  );
+}
+```
+
+### Controlled Map
+
+Control map state externally:
+
+```tsx
+import { useState } from 'react';
+import { OpenLayersMap, MapTileLayer } from '@mixelburg/react-ol';
+
+function App() {
+  const [center, setCenter] = useState({ lat: 32.0853, long: 34.7818 });
+  const [zoom, setZoom] = useState(10);
+
+  const locations = [
+    { name: 'Tel Aviv', coords: { lat: 32.0853, long: 34.7818 } },
+    { name: 'Jerusalem', coords: { lat: 31.7683, long: 35.2137 } },
+    { name: 'Haifa', coords: { lat: 32.7940, long: 34.9896 } },
+  ];
+
+  return (
+    <div>
+      <div style={{ padding: 16, display: 'flex', gap: 8 }}>
+        {locations.map(loc => (
+          <button
+            key={loc.name}
+            onClick={() => {
+              setCenter(loc.coords);
+              setZoom(13);
+            }}
+          >
+            Go to {loc.name}
+          </button>
+        ))}
+        <button onClick={() => setZoom(zoom + 1)}>Zoom In</button>
+        <button onClick={() => setZoom(zoom - 1)}>Zoom Out</button>
+      </div>
+
+      <OpenLayersMap
+        center={center}
+        onCenterChange={setCenter}
+        zoom={zoom}
+        onZoomChange={setZoom}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+## Advanced Examples
+
+### Drawing Routes
+
+Draw lines between points:
+
+```tsx
+import { useState } from 'react';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature, LineStringFeature } from '@mixelburg/react-ol';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+function App() {
+  const [points, setPoints] = useState([]);
+
+  const handleMapClick = (coords) => {
+    setPoints([...points, coords]);
+  };
+
+  const clearPoints = () => setPoints([]);
+
+  return (
+    <div>
+      <div style={{ padding: 16 }}>
+        <button onClick={clearPoints}>Clear Route</button>
+        <span style={{ marginLeft: 16 }}>Points: {points.length}</span>
+      </div>
+
+      <OpenLayersMap
+        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+        defaultZoom={13}
+        onClick={handleMapClick}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="route">
+          {/* Draw line through all points */}
+          {points.length > 1 && (
+            <LineStringFeature
+              coordinates={points}
+              style={new Style({
+                stroke: new Stroke({
+                  color: '#3b82f6',
+                  width: 3
+                })
+              })}
+            />
+          )}
+
+          {/* Draw markers at each point */}
+          {points.map((point, index) => (
+            <PointFeature
+              key={index}
+              coordinates={point}
+              style={new Style({
+                image: new Circle({
+                  radius: 6,
+                  fill: new Fill({ color: '#ef4444' }),
+                  stroke: new Stroke({ color: 'white', width: 2 })
+                })
+              })}
+            />
+          ))}
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+### Polygon Drawing
+
+Draw and edit polygons:
+
+```tsx
+import { useState } from 'react';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PolygonFeature, PointFeature } from '@mixelburg/react-ol';
+import { Fill, Stroke, Style, Circle as CircleStyle } from 'ol/style';
+
+function App() {
+  const [vertices, setVertices] = useState([]);
+  const [isComplete, setIsComplete] = useState(false);
+
+  const handleMapClick = (coords) => {
+    if (!isComplete) {
+      setVertices([...vertices, coords]);
+    }
+  };
+
+  const completePolygon = () => {
+    if (vertices.length >= 3) {
+      setIsComplete(true);
+    }
+  };
+
+  const reset = () => {
+    setVertices([]);
+    setIsComplete(false);
+  };
+
+  return (
+    <div>
+      <div style={{ padding: 16 }}>
+        <button onClick={completePolygon} disabled={vertices.length < 3 || isComplete}>
+          Complete Polygon
+        </button>
+        <button onClick={reset}>Reset</button>
+        <span style={{ marginLeft: 16 }}>
+          Vertices: {vertices.length} {!isComplete && '(click map to add)'}
+        </span>
+      </div>
+
+      <OpenLayersMap
+        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+        defaultZoom={13}
+        onClick={handleMapClick}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="polygon">
+          {/* Draw polygon when complete */}
+          {isComplete && vertices.length >= 3 && (
+            <PolygonFeature
+              coordinates={vertices}
+              style={new Style({
+                fill: new Fill({ color: 'rgba(59, 130, 246, 0.2)' }),
+                stroke: new Stroke({ color: '#3b82f6', width: 2 })
+              })}
+            />
+          )}
+
+          {/* Draw vertices */}
+          {vertices.map((vertex, index) => (
+            <PointFeature
+              key={index}
+              coordinates={vertex}
+              style={new Style({
+                image: new CircleStyle({
+                  radius: 6,
+                  fill: new Fill({ color: '#ef4444' }),
+                  stroke: new Stroke({ color: 'white', width: 2 })
+                })
+              })}
+            />
+          ))}
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+### Data Visualization
+
+Display data points with different sizes/colors:
+
+```tsx
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+const cities = [
+  { name: 'Tel Aviv', coords: { lat: 32.0853, long: 34.7818 }, population: 460000 },
+  { name: 'Jerusalem', coords: { lat: 31.7683, long: 35.2137 }, population: 936000 },
+  { name: 'Haifa', coords: { lat: 32.7940, long: 34.9896 }, population: 285000 },
+  { name: 'Rishon LeZion', coords: { lat: 31.9730, long: 34.7925 }, population: 254000 },
+];
+
+function getMarkerStyle(population) {
+  // Scale marker size based on population
+  const radius = Math.sqrt(population) / 100;
+
+  // Color based on population
+  const color = population > 500000 ? '#ef4444' :
+                population > 300000 ? '#f59e0b' : '#3b82f6';
+
+  return new Style({
+    image: new Circle({
+      radius: radius,
+      fill: new Fill({ color: color }),
+      stroke: new Stroke({ color: 'white', width: 2 })
+    })
+  });
+}
+
+function App() {
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32, long: 35 }}
+      defaultZoom={9}
+      wrapperProps={{ style: { width: '100%', height: '600px' }}}
+    >
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer layerId="cities">
+        {cities.map(city => (
+          <PointFeature
+            key={city.name}
+            coordinates={city.coords}
+            style={getMarkerStyle(city.population)}
+            properties={city}
+            onClick={(feature) => {
+              alert(`${feature.get('name')}: ${feature.get('population').toLocaleString()} people`);
+            }}
+          />
+        ))}
+      </MapVectorLayer>
+    </OpenLayersMap>
+  );
+}
+```
+
+### Real-time Tracking
+
+Animate a moving marker:
+
+```tsx
+import { useState, useEffect } from 'react';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature, LineStringFeature, useMapRef } from '@mixelburg/react-ol';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+function App() {
+  const [position, setPosition] = useState({ lat: 32.0853, long: 34.7818 });
+  const [trail, setTrail] = useState([]);
+  const [isTracking, setIsTracking] = useState(false);
+  const mapRef = useMapRef();
+
+  useEffect(() => {
+    if (!isTracking) return;
+
+    const interval = setInterval(() => {
+      setPosition(prev => {
+        const newPos = {
+          lat: prev.lat + (Math.random() - 0.5) * 0.001,
+          long: prev.long + (Math.random() - 0.5) * 0.001,
+        };
+        setTrail(t => [...t.slice(-50), newPos]); // Keep last 50 points
+
+        // Auto-center on marker
+        mapRef.current?.centerOn(newPos);
+
+        return newPos;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTracking, mapRef]);
+
+  return (
+    <div>
+      <div style={{ padding: 16 }}>
+        <button onClick={() => setIsTracking(!isTracking)}>
+          {isTracking ? 'Stop' : 'Start'} Tracking
+        </button>
+        <button onClick={() => setTrail([])}>Clear Trail</button>
+      </div>
+
+      <OpenLayersMap
+        ref={mapRef}
+        defaultCenter={position}
+        defaultZoom={15}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="tracking">
+          {/* Trail */}
+          {trail.length > 1 && (
+            <LineStringFeature
+              coordinates={trail}
+              style={new Style({
+                stroke: new Stroke({
+                  color: '#3b82f6',
+                  width: 2,
+                  lineDash: [5, 5]
+                })
+              })}
+            />
+          )}
+
+          {/* Current position */}
+          <PointFeature
+            coordinates={position}
+            style={new Style({
+              image: new Circle({
+                radius: 10,
+                fill: new Fill({ color: '#ef4444' }),
+                stroke: new Stroke({ color: 'white', width: 3 })
+              })
+            })}
+          />
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+### Custom Popups
+
+Create custom popups with React components:
+
+```tsx
+import { useState } from 'react';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature, ReactMapOverlay } from '@mixelburg/react-ol';
+import { Circle, Fill, Stroke, Style } from 'ol/style';
+
+const locations = [
+  { id: 1, name: 'Restaurant', coords: { lat: 32.0853, long: 34.7818 }, type: 'food', rating: 4.5 },
+  { id: 2, name: 'Museum', coords: { lat: 32.0900, long: 34.7900 }, type: 'culture', rating: 4.8 },
+  { id: 3, name: 'Park', coords: { lat: 32.0800, long: 34.7850 }, type: 'nature', rating: 4.2 },
+];
+
+function App() {
+  const [selected, setSelected] = useState(null);
+
+  return (
+    <OpenLayersMap
+      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+      defaultZoom={14}
+      wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      onClick={() => setSelected(null)}
+    >
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer layerId="places">
+        {locations.map(location => (
+          <PointFeature
+            key={location.id}
+            coordinates={location.coords}
+            style={new Style({
+              image: new Circle({
+                radius: 8,
+                fill: new Fill({
+                  color: selected?.id === location.id ? '#ef4444' : '#3b82f6'
+                }),
+                stroke: new Stroke({ color: 'white', width: 2 })
+              })
+            })}
+            onClick={(feature, event) => {
+              event.stopPropagation();
+              setSelected(location);
+            }}
+          />
+        ))}
+      </MapVectorLayer>
+
+      {/* Popup */}
+      {selected && (
+        <ReactMapOverlay
+          coordinates={selected.coords}
+          transform="translate(-50%, -120%)"
+        >
+          <div style={{
+            background: 'white',
+            padding: 16,
+            borderRadius: 8,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            minWidth: 200,
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => setSelected(null)}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                border: 'none',
+                background: 'transparent',
+                fontSize: 20,
+                cursor: 'pointer'
+              }}
+            >
+              ×
+            </button>
+
+            <h3 style={{ margin: '0 0 8px 0' }}>{selected.name}</h3>
+            <div style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>
+              Type: {selected.type}
+            </div>
+            <div style={{ fontSize: 14, color: '#f59e0b' }}>
+              {'⭐'.repeat(Math.floor(selected.rating))} {selected.rating}
+            </div>
+
+            <button style={{
+              marginTop: 12,
+              padding: '6px 12px',
+              background: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: 4,
+              cursor: 'pointer',
+              width: '100%'
+            }}>
+              View Details
+            </button>
+          </div>
+        </ReactMapOverlay>
+      )}
+    </OpenLayersMap>
+  );
+}
+```
+
+## Integration Examples
+
+### With React Hook Form
+
+Integrate with forms:
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
+
+function LocationForm() {
+  const { register, handleSubmit, setValue, watch } = useForm({
+    defaultValues: {
+      name: '',
+      lat: 32.0853,
+      long: 34.7818
+    }
+  });
+
+  const coordinates = {
+    lat: watch('lat'),
+    long: watch('long')
+  };
+
+  const onSubmit = (data) => {
+    console.log('Form data:', data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+        <input {...register('name')} placeholder="Location name" />
+        <input type="number" step="any" {...register('lat', { valueAsNumber: true })} />
+        <input type="number" step="any" {...register('long', { valueAsNumber: true })} />
+        <button type="submit">Save</button>
+      </div>
+
+      <OpenLayersMap
+        defaultCenter={coordinates}
+        defaultZoom={13}
+        onClick={(coords) => {
+          setValue('lat', coords.lat);
+          setValue('long', coords.long);
+        }}
+        wrapperProps={{ style: { width: '100%', height: '400px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+        <MapVectorLayer layerId="marker">
+          <PointFeature coordinates={coordinates} />
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </form>
+  );
+}
+```
+
+### With State Management
+
+Use with Redux/Zustand:
+
+```tsx
+import create from 'zustand';
+import { OpenLayersMap, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
+
+// Zustand store
+const useMapStore = create((set) => ({
+  markers: [],
+  addMarker: (coords) => set((state) => ({
+    markers: [...state.markers, { id: Date.now(), coords }]
+  })),
+  removeMarker: (id) => set((state) => ({
+    markers: state.markers.filter(m => m.id !== id)
+  })),
+  clearMarkers: () => set({ markers: [] })
+}));
+
+function App() {
+  const { markers, addMarker, removeMarker, clearMarkers } = useMapStore();
+
+  return (
+    <div>
+      <div style={{ padding: 16 }}>
+        <button onClick={clearMarkers}>Clear All ({markers.length})</button>
+      </div>
+
+      <OpenLayersMap
+        defaultCenter={{ lat: 32, long: 34 }}
+        defaultZoom={10}
+        onClick={(coords) => addMarker(coords)}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+        <MapVectorLayer layerId="markers">
+          {markers.map(marker => (
+            <PointFeature
+              key={marker.id}
+              coordinates={marker.coords}
+              onClick={(feature, event) => {
+                event.stopPropagation();
+                removeMarker(marker.id);
+              }}
+            />
+          ))}
+        </MapVectorLayer>
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+## See Also
+
+- [API Reference](/docs/api-map) - Complete API documentation
+- [Live Demo](/docs/demo) - Interactive playground
+- [GitHub](https://github.com/mixelburg/react-ol) - Source code and issues
+

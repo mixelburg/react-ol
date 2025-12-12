@@ -1,0 +1,721 @@
+---
+title: Overlays API
+description: API reference for ReactMapOverlay component
+---
+
+# ReactMapOverlay
+
+The `ReactMapOverlay` component allows you to render React components at specific map coordinates. This is perfect for tooltips, popups, labels, custom markers, or any UI element that should be positioned at a geographic location.
+
+## Import
+
+```tsx
+import { ReactMapOverlay } from '@mixelburg/react-ol';
+```
+
+## How It Works
+
+Unlike features (which are rendered by OpenLayers on the canvas), overlays are React components rendered in the DOM and positioned using CSS. This means:
+
+- ✅ You can use any React component (buttons, forms, images, etc.)
+- ✅ Full CSS styling and animations work
+- ✅ Easy to make interactive with onClick, hover, etc.
+- ✅ Automatically repositions when map moves
+- ⚠️ Performance may degrade with many overlays (>100)
+
+## Props
+
+### coordinates (required)
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Description:** The geographic position where the overlay should appear
+
+```tsx
+<ReactMapOverlay coordinates={{ lat: 32.0853, long: 34.7818 }}>
+  <div>Hello!</div>
+</ReactMapOverlay>
+```
+
+### children (required)
+
+- **Type:** `ReactNode`
+- **Description:** The React content to render at the coordinates
+
+```tsx
+<ReactMapOverlay coordinates={{ lat: 32, long: 34 }}>
+  <div className="custom-popup">
+    <h3>Title</h3>
+    <p>Content</p>
+  </div>
+</ReactMapOverlay>
+```
+
+### transform
+
+- **Type:** `string`
+- **Default:** `"translate(-50%, -100%)"`
+- **Description:** CSS transform to adjust positioning relative to the coordinate point
+
+The default positions the overlay centered horizontally and above the point (like a pin label).
+
+```tsx
+// Center the overlay on the point
+<ReactMapOverlay
+  coordinates={{ lat: 32, long: 34 }}
+  transform="translate(-50%, -50%)"
+>
+  <div>Centered</div>
+</ReactMapOverlay>
+
+// Position to the right of the point
+<ReactMapOverlay
+  coordinates={{ lat: 32, long: 34 }}
+  transform="translate(10px, -50%)"
+>
+  <div>To the right</div>
+</ReactMapOverlay>
+
+// Bottom-left corner at point
+<ReactMapOverlay
+  coordinates={{ lat: 32, long: 34 }}
+  transform="translate(0, 0)"
+>
+  <div>Bottom-left</div>
+</ReactMapOverlay>
+```
+
+### className
+
+- **Type:** `string`
+- **Optional**
+- **Description:** CSS class name(s) to apply to the overlay container
+
+```tsx
+<ReactMapOverlay
+  coordinates={{ lat: 32, long: 34 }}
+  className="my-overlay custom-popup"
+>
+  <div>Styled overlay</div>
+</ReactMapOverlay>
+```
+
+### style
+
+- **Type:** `React.CSSProperties`
+- **Optional**
+- **Description:** Inline styles to apply to the overlay container
+
+```tsx
+<ReactMapOverlay
+  coordinates={{ lat: 32, long: 34 }}
+  style={{
+    background: 'white',
+    padding: '12px',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+  }}
+>
+  <div>Styled overlay</div>
+</ReactMapOverlay>
+```
+
+## Examples
+
+### Simple Tooltip
+
+```tsx
+<ReactMapOverlay coordinates={{ lat: 32.0853, long: 34.7818 }}>
+  <div style={{
+    background: 'rgba(0, 0, 0, 0.8)',
+    color: 'white',
+    padding: '6px 12px',
+    borderRadius: '4px',
+    whiteSpace: 'nowrap',
+    fontSize: '14px'
+  }}>
+    Tel Aviv
+  </div>
+</ReactMapOverlay>
+```
+
+### Custom Popup
+
+```tsx
+<ReactMapOverlay
+  coordinates={{ lat: 32.0853, long: 34.7818 }}
+  style={{
+    background: 'white',
+    padding: '16px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    maxWidth: '250px'
+  }}
+>
+  <div>
+    <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>Tel Aviv</h3>
+    <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#666' }}>
+      Second most populous city in Israel
+    </p>
+    <button onClick={() => console.log('Learn more!')}>
+      Learn More
+    </button>
+  </div>
+</ReactMapOverlay>
+```
+
+### Interactive Label
+
+```tsx
+import { useState } from 'react';
+
+function MyMap() {
+  const [hovering, setHovering] = useState(false);
+
+  return (
+    <ReactMapOverlay coordinates={{ lat: 32.0853, long: 34.7818 }}>
+      <div
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        style={{
+          background: hovering ? '#3b82f6' : 'white',
+          color: hovering ? 'white' : 'black',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          border: '2px solid #3b82f6',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+          fontWeight: 600
+        }}
+      >
+        {hovering ? 'Click me!' : 'Tel Aviv'}
+      </div>
+    </ReactMapOverlay>
+  );
+}
+```
+
+### Icon with Badge
+
+```tsx
+import { FaMapMarkerAlt } from 'react-icons/fa';
+
+<ReactMapOverlay
+  coordinates={{ lat: 32.0853, long: 34.7818 }}
+  transform="translate(-50%, -100%)"
+>
+  <div style={{ position: 'relative' }}>
+    <FaMapMarkerAlt size={32} color="#ef4444" />
+    <div style={{
+      position: 'absolute',
+      top: -8,
+      right: -8,
+      background: '#3b82f6',
+      color: 'white',
+      borderRadius: '50%',
+      width: 20,
+      height: 20,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 12,
+      fontWeight: 'bold'
+    }}>
+      5
+    </div>
+  </div>
+</ReactMapOverlay>
+```
+
+### Custom Marker with Animation
+
+```tsx
+<ReactMapOverlay
+  coordinates={{ lat: 32.0853, long: 34.7818 }}
+  style={{
+    animation: 'bounce 1s infinite'
+  }}
+>
+  <div style={{
+    width: 40,
+    height: 40,
+    background: '#ef4444',
+    borderRadius: '50% 50% 50% 0',
+    transform: 'rotate(-45deg)',
+    border: '3px solid white',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+  }}>
+    <div style={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%) rotate(45deg)',
+      width: 12,
+      height: 12,
+      background: 'white',
+      borderRadius: '50%'
+    }} />
+  </div>
+</ReactMapOverlay>
+```
+
+### Dynamic Content
+
+```tsx
+import { useState, useEffect } from 'react';
+
+function WeatherOverlay({ coordinates, cityId }) {
+  const [weather, setWeather] = useState(null);
+
+  useEffect(() => {
+    // Fetch weather data
+    fetch(`/api/weather/${cityId}`)
+      .then(r => r.json())
+      .then(setWeather);
+  }, [cityId]);
+
+  return (
+    <ReactMapOverlay coordinates={coordinates}>
+      <div style={{
+        background: 'white',
+        padding: '12px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        minWidth: 120
+      }}>
+        {weather ? (
+          <>
+            <div style={{ fontSize: 18, fontWeight: 'bold' }}>
+              {weather.temp}°C
+            </div>
+            <div style={{ fontSize: 14, color: '#666' }}>
+              {weather.condition}
+            </div>
+          </>
+        ) : (
+          <div>Loading...</div>
+        )}
+      </div>
+    </ReactMapOverlay>
+  );
+}
+```
+
+### Multiple Overlays
+
+```tsx
+const locations = [
+  { id: 1, coords: { lat: 32.08, long: 34.78 }, name: 'Location A' },
+  { id: 2, coords: { lat: 32.09, long: 34.79 }, name: 'Location B' },
+  { id: 3, coords: { lat: 32.10, long: 34.80 }, name: 'Location C' },
+];
+
+<OpenLayersMap>
+  <MapTileLayer source={new OSM()} />
+
+  {locations.map(location => (
+    <ReactMapOverlay
+      key={location.id}
+      coordinates={location.coords}
+    >
+      <div style={{
+        background: 'white',
+        padding: '8px 12px',
+        borderRadius: '4px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+        fontSize: 14
+      }}>
+        {location.name}
+      </div>
+    </ReactMapOverlay>
+  ))}
+</OpenLayersMap>
+```
+
+### Conditional Overlays
+
+```tsx
+import { useState } from 'react';
+
+function MyMap() {
+  const [showLabels, setShowLabels] = useState(true);
+  const [zoom, setZoom] = useState(10);
+
+  return (
+    <div>
+      <button onClick={() => setShowLabels(!showLabels)}>
+        Toggle Labels
+      </button>
+
+      <OpenLayersMap
+        defaultCenter={{ lat: 32, long: 34 }}
+        zoom={zoom}
+        onZoomChange={setZoom}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        {/* Only show labels when enabled and zoomed in */}
+        {showLabels && zoom > 12 && (
+          <>
+            <ReactMapOverlay coordinates={{ lat: 32.08, long: 34.78 }}>
+              <div className="map-label">City Center</div>
+            </ReactMapOverlay>
+
+            <ReactMapOverlay coordinates={{ lat: 32.09, long: 34.79 }}>
+              <div className="map-label">Park</div>
+            </ReactMapOverlay>
+          </>
+        )}
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
+### Click-to-Show Popup
+
+```tsx
+import { useState } from 'react';
+
+function MyMap() {
+  const [selectedPoint, setSelectedPoint] = useState(null);
+
+  return (
+    <OpenLayersMap
+      onClick={(coords) => {
+        setSelectedPoint(coords);
+      }}
+    >
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer layerId="markers">
+        <PointFeature
+          coordinates={{ lat: 32.0853, long: 34.7818 }}
+          onClick={(feature, event) => {
+            event.stopPropagation();
+            setSelectedPoint({ lat: 32.0853, long: 34.7818 });
+          }}
+        />
+      </MapVectorLayer>
+
+      {selectedPoint && (
+        <ReactMapOverlay coordinates={selectedPoint}>
+          <div style={{
+            background: 'white',
+            padding: '16px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => setSelectedPoint(null)}
+              style={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontSize: 18
+              }}
+            >
+              ×
+            </button>
+            <h3 style={{ margin: '0 0 8px 0' }}>Location Details</h3>
+            <p style={{ margin: 0 }}>
+              Lat: {selectedPoint.lat.toFixed(4)}<br />
+              Long: {selectedPoint.long.toFixed(4)}
+            </p>
+          </div>
+        </ReactMapOverlay>
+      )}
+    </OpenLayersMap>
+  );
+}
+```
+
+## Transform Guide
+
+The `transform` prop controls where the overlay appears relative to the coordinate point:
+
+```tsx
+// Default: Centered horizontally, above the point (like a label)
+transform="translate(-50%, -100%)"
+
+// Centered on point
+transform="translate(-50%, -50%)"
+
+// Top-left corner at point
+transform="translate(0, 0)"
+
+// Bottom-right corner at point
+transform="translate(-100%, -100%)"
+
+// 20px to the right, centered vertically
+transform="translate(20px, -50%)"
+
+// Custom with rotation
+transform="translate(-50%, -100%) rotate(45deg)"
+```
+
+Visual reference:
+```
+         -100%
+           |
+-100% ----[•]---- 0%
+           |
+           0%
+
+[•] = coordinate point
+```
+
+## Styling Tips
+
+1. **Background & Shadow**: Use background color and box-shadow for visibility
+2. **Border Radius**: Rounded corners (`borderRadius: 8px`) look modern
+3. **Pointer Events**: Set `pointerEvents: 'auto'` if you need interaction
+4. **Z-Index**: Use `zIndex` in style to control stacking
+5. **Transitions**: CSS transitions work great for hover effects
+6. **Responsive**: Use relative units (%, em) for better scaling
+
+```css
+/* Example CSS for overlays */
+.map-overlay {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.map-overlay:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+```
+
+## Performance Considerations
+
+1. **Limit Overlays**: Try to keep < 50 overlays visible at once
+2. **Conditional Rendering**: Hide overlays at low zoom levels
+3. **Memoization**: Use `React.memo()` for overlay components
+4. **Virtualization**: For many overlays, render only those in viewport
+
+```tsx
+// Good: Only show overlays when zoomed in
+{zoom > 12 && locations.map(loc => (
+  <ReactMapOverlay key={loc.id} coordinates={loc.coords}>
+    {/* content */}
+  </ReactMapOverlay>
+))}
+
+// Good: Memoized overlay component
+const MemoizedOverlay = React.memo(({ coordinates, data }) => (
+  <ReactMapOverlay coordinates={coordinates}>
+    <div>{data.name}</div>
+  </ReactMapOverlay>
+));
+```
+
+## Overlay vs Feature
+
+When should you use an overlay vs a styled feature?
+
+**Use ReactMapOverlay when:**
+- You need interactive UI elements (buttons, forms, inputs)
+- You want complex HTML/CSS layouts
+- You need React component lifecycle
+- Content is text-heavy or needs rich formatting
+- You have < 50 overlays
+
+**Use Features (with styles) when:**
+- You need high performance with many items (> 100)
+- Content is simple geometric shapes
+- You don't need complex interactivity
+- You want OpenLayers optimizations (clustering, etc.)
+
+## Complete Example
+
+```tsx
+import { useState } from 'react';
+import {
+  OpenLayersMap,
+  MapTileLayer,
+  MapVectorLayer,
+  PointFeature,
+  ReactMapOverlay,
+  useMapRef
+} from '@mixelburg/react-ol';
+import { OSM } from 'ol/source';
+import { Circle, Fill, Style } from 'ol/style';
+
+const locations = [
+  { id: 1, coords: { lat: 32.0853, long: 34.7818 }, name: 'Tel Aviv', type: 'city', population: 460000 },
+  { id: 2, coords: { lat: 32.0809, long: 34.7806 }, name: 'Jaffa', type: 'historic', population: 48000 },
+  { id: 3, coords: { lat: 32.1139, long: 34.8047 }, name: 'Ramat Gan', type: 'city', population: 163000 },
+];
+
+function MyMap() {
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [hoveredLocation, setHoveredLocation] = useState(null);
+  const [showLabels, setShowLabels] = useState(true);
+  const mapRef = useMapRef();
+
+  const markerStyle = new Style({
+    image: new Circle({
+      radius: 8,
+      fill: new Fill({ color: '#3b82f6' }),
+      stroke: new Stroke({ color: 'white', width: 2 })
+    })
+  });
+
+  const selectedStyle = new Style({
+    image: new Circle({
+      radius: 10,
+      fill: new Fill({ color: '#ef4444' }),
+      stroke: new Stroke({ color: 'white', width: 2 })
+    })
+  });
+
+  return (
+    <div>
+      <div style={{ padding: 16 }}>
+        <button onClick={() => setShowLabels(!showLabels)}>
+          {showLabels ? 'Hide' : 'Show'} Labels
+        </button>
+        <button onClick={() => mapRef.current?.fitAll([50, 50, 50, 50])}>
+          Fit All
+        </button>
+      </div>
+
+      <OpenLayersMap
+        ref={mapRef}
+        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
+        defaultZoom={12}
+        wrapperProps={{ style: { width: '100%', height: '600px' }}}
+      >
+        <MapTileLayer source={new OSM()} />
+
+        <MapVectorLayer layerId="locations">
+          {locations.map(location => (
+            <PointFeature
+              key={location.id}
+              coordinates={location.coords}
+              style={selectedLocation?.id === location.id ? selectedStyle : markerStyle}
+              properties={location}
+              onClick={(feature) => {
+                setSelectedLocation(feature.getProperties());
+              }}
+              onMouseEnter={(feature) => {
+                setHoveredLocation(feature.getProperties());
+              }}
+              onMouseExit={() => {
+                setHoveredLocation(null);
+              }}
+            />
+          ))}
+        </MapVectorLayer>
+
+        {/* Labels */}
+        {showLabels && locations.map(location => (
+          <ReactMapOverlay
+            key={`label-${location.id}`}
+            coordinates={location.coords}
+          >
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.75)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: 12,
+              fontWeight: 500,
+              whiteSpace: 'nowrap'
+            }}>
+              {location.name}
+            </div>
+          </ReactMapOverlay>
+        ))}
+
+        {/* Hover popup */}
+        {hoveredLocation && !selectedLocation && (
+          <ReactMapOverlay
+            coordinates={hoveredLocation.coords}
+            transform="translate(-50%, -120%)"
+          >
+            <div style={{
+              background: 'white',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              fontSize: 14
+            }}>
+              <strong>{hoveredLocation.name}</strong>
+              <div style={{ fontSize: 12, color: '#666' }}>
+                Click for details
+              </div>
+            </div>
+          </ReactMapOverlay>
+        )}
+
+        {/* Selected popup */}
+        {selectedLocation && (
+          <ReactMapOverlay
+            coordinates={selectedLocation.coords}
+            transform="translate(-50%, -120%)"
+          >
+            <div style={{
+              background: 'white',
+              padding: '16px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+              minWidth: 200,
+              position: 'relative'
+            }}>
+              <button
+                onClick={() => setSelectedLocation(null)}
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: 18 }}>
+                {selectedLocation.name}
+              </h3>
+              <div style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>
+                Type: {selectedLocation.type}
+              </div>
+              <div style={{ fontSize: 14, color: '#666' }}>
+                Population: {selectedLocation.population.toLocaleString()}
+              </div>
+              <button
+                style={{
+                  marginTop: 12,
+                  padding: '6px 12px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  mapRef.current?.centerOn(selectedLocation.coords, 15);
+                }}
+              >
+                Zoom Here
+              </button>
+            </div>
+          </ReactMapOverlay>
+        )}
+      </OpenLayersMap>
+    </div>
+  );
+}
+```
+
