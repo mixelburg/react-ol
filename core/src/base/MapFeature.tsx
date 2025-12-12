@@ -5,6 +5,7 @@ import { StyleLike } from "ol/style/Style";
 import { useEffect } from "react";
 import { useMapContext } from "../map/MapContext";
 import { useMapLayerContext } from "./MapLayerContext";
+import WebGLVectorLayer from "ol/layer/WebGLVector";
 
 export interface MapFeatureProps {
   feature: Feature;
@@ -29,8 +30,8 @@ export const MapFeature = ({
   const { mapInstance } = useMapContext();
 
   useEffect(() => {
-    if (!(layer instanceof VectorLayer)) {
-      console.warn("MapFeature can only be used with VectorLayer");
+    if (!(layer instanceof VectorLayer || layer instanceof WebGLVectorLayer)) {
+      console.warn("MapFeature can only be used with VectorLayer or WebGLVectorLayer");
       return;
     }
 

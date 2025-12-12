@@ -3,20 +3,17 @@
 import {
   CircleFeature,
   LineStringFeature,
-  MapTileLayer,
-  MapVectorLayer,
+  MapWebGLTileLayer,
+  MapWebGLVectorLayer,
   OpenLayersMap,
   PointFeature,
   PolygonFeature,
-  ReactMapOverlay,
-  reactIconToSrc,
-  useMapRef, MapWebGLTileLayer,
+  useMapRef,
 } from "@mixelburg/react-ol";
-import { Button, Paper, Stack, Typography } from "@mui/material";
-import { Circle, Fill, Icon, Stroke, Style } from "ol/style";
-import { FC, useState } from "react";
-import { FaCar } from "react-icons/fa";
+import { Paper, Stack } from "@mui/material";
+import type { Options as WebGLVectorLayerOptions } from "ol/layer/WebGLVector";
 import DataTileSource from "ol/source/DataTile";
+import { FC } from "react";
 
 const source = new DataTileSource({
   loader: async (z, x, y) => {
@@ -30,12 +27,59 @@ const source = new DataTileSource({
   },
 });
 
+const vectorLayerStyle: WebGLVectorLayerOptions["style"] = {
+  "circle-radius": [
+    "case",
+    ["==", ["geometry-type"], "Point"],
+    8,
+    ["==", ["geometry-type"], "Circle"],
+    ["get", "radius"],
+    0,
+  ],
+  "circle-fill-color": [
+    "case",
+    ["==", ["geometry-type"], "Point"],
+    "rgba(255, 0, 0, 0.8)",
+    ["==", ["geometry-type"], "Circle"],
+    "rgba(0, 150, 255, 0.3)",
+    "transparent",
+  ],
+  "circle-stroke-color": [
+    "case",
+    ["==", ["geometry-type"], "Point"],
+    "rgba(200, 0, 0, 1)",
+    ["==", ["geometry-type"], "Circle"],
+    "rgba(0, 100, 200, 0.8)",
+    "transparent",
+  ],
+  "circle-stroke-width": 2,
+  "stroke-color": [
+    "case",
+    ["==", ["geometry-type"], "LineString"],
+    "rgba(0, 200, 0, 0.9)",
+    ["==", ["geometry-type"], "Polygon"],
+    "rgba(255, 165, 0, 0.9)",
+    "rgba(100, 100, 100, 0.8)",
+  ],
+  "stroke-width": [
+    "case",
+    ["==", ["geometry-type"], "LineString"],
+    4,
+    ["==", ["geometry-type"], "Polygon"],
+    3,
+    2,
+  ],
+  "fill-color": [
+    "case",
+    ["==", ["geometry-type"], "Polygon"],
+    "rgba(255, 165, 0, 0.3)",
+    "transparent",
+  ],
+};
+
 const AppWebGL: FC = () => {
   const mapRef = useMapRef();
 
-  // Overlay state
-  const [showOverlay, setShowOverlay] = useState(false);
-  const carCoordinates = { long: 34.79972, lat: 32.088 };
 
   return (
     <Stack alignItems="center" component={Paper} spacing={2} padding={2}>
@@ -51,75 +95,21 @@ const AppWebGL: FC = () => {
       >
         <MapWebGLTileLayer source={source} />
 
-        {/* Layer 1: Car and Circle */}
-        <MapVectorLayer layerId={"carCircleLayer"}>
-          <PointFeature
-            onClick={(feature, event) => {
-              console.log("Car clicked:", feature, event);
-              setShowOverlay(true);
-            }}
-            coordinates={carCoordinates}
-            style={
-              new Style({
-                image: new Icon({
-                  src: reactIconToSrc(
-                    <FaCar
-                      style={{
-                        color: "blue",
-                      }}
-                    />,
-                  ),
-                  scale: 1,
-                }),
-              })
-            }
-          />
-
+        {/* WebGL Vector Layer for High-Performance Rendering - All Features */}
+        <MapWebGLVectorLayer layerId={"webglVectorLayer"} style={vectorLayerStyle}>
           <CircleFeature
             center={{ long: 34.79, lat: 32.087 }}
             radius={500}
-            style={
-              new Style({
-                stroke: new Stroke({
-                  color: "purple",
-                  width: 2,
-                }),
-              })
-            }
-            hoverStyle={
-              new Style({
-                stroke: new Stroke({
-                  color: "purple",
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: "rgba(128, 0, 128, 0.2)",
-                }),
-              })
-            }
             onClick={(feature, event) => {
               console.log("Circle clicked:", feature, event);
             }}
           />
-        </MapVectorLayer>
 
-        {/* Layer 2: Other Geometry Features */}
-        <MapVectorLayer layerId={"geometryLayer"}>
           <PointFeature
             coordinates={{
               long: 34.78,
               lat: 32.085,
             }}
-            style={
-              new Style({
-                image: new Circle({
-                  radius: 8,
-                  fill: new Fill({
-                    color: "blue",
-                  }),
-                }),
-              })
-            }
             onClick={(feature, event) => {
               console.log("Point clicked:", feature, event);
             }}
@@ -132,14 +122,6 @@ const AppWebGL: FC = () => {
               { long: 34.79, lat: 32.087 },
               { long: 34.79972, lat: 32.088 },
             ]}
-            style={
-              new Style({
-                stroke: new Stroke({
-                  color: "red",
-                  width: 3,
-                }),
-              })
-            }
             onClick={(feature, event) => {
               console.log("Line clicked:", feature, event);
             }}
@@ -152,52 +134,11 @@ const AppWebGL: FC = () => {
               { long: 34.788, lat: 32.092 },
               { long: 34.775, lat: 32.092 },
             ]}
-            style={
-              new Style({
-                stroke: new Stroke({
-                  color: "green",
-                  width: 2,
-                }),
-                fill: new Fill({
-                  color: "rgba(0, 255, 0, 0.2)",
-                }),
-              })
-            }
             onClick={(feature, event) => {
               console.log("Polygon clicked:", feature, event);
             }}
-            onMouseEnter={(feature, event) => {
-              console.log("Polygon mouse enter:", feature, event);
-            }}
-            onMouseExit={(feature, event) => {
-              console.log("Polygon mouse exit:", feature, event);
-            }}
           />
-        </MapVectorLayer>
-
-        {/* Overlay for Car */}
-        {showOverlay && (
-          <ReactMapOverlay coordinates={carCoordinates}>
-            <Paper
-              elevation={3}
-              sx={{
-                padding: 2,
-                backgroundColor: "white",
-                maxWidth: "200px",
-              }}
-            >
-              <Typography variant="h6" gutterBottom>
-                Car Information
-              </Typography>
-              <Typography variant="body2">
-                Location: {carCoordinates.lat.toFixed(4)}, {carCoordinates.long.toFixed(4)}
-              </Typography>
-              <Button variant="contained" size="small" onClick={() => setShowOverlay(false)} sx={{ marginTop: 1 }}>
-                Close
-              </Button>
-            </Paper>
-          </ReactMapOverlay>
-        )}
+        </MapWebGLVectorLayer>
       </OpenLayersMap>
     </Stack>
   );

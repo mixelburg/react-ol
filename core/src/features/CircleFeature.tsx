@@ -4,6 +4,9 @@ import { fromLonLat } from "ol/proj";
 import { useMemo } from "react";
 import { MapFeature } from "../base/MapFeature";
 import { BaseFeatureProps, Coordinates } from "../utils";
+import VectorLayer from "ol/layer/Vector";
+import WebGLVectorLayer from "ol/layer/WebGLVector";
+import {useMapLayerContext} from "../base/MapLayerContext";
 
 export interface CircleFeatureProps extends BaseFeatureProps {
   center: Coordinates;
@@ -28,6 +31,13 @@ export const CircleFeature = ({
       ...properties,
     });
   }, [center, radius, properties]);
+
+  const { layer } = useMapLayerContext();
+
+  if (layer instanceof WebGLVectorLayer) {
+    console.warn("CircleFeature can only be used with VectorLayer not WebGLVectorLayer.");
+    return;
+  }
 
   return (
     <MapFeature

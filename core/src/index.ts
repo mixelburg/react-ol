@@ -8,6 +8,7 @@ export * from "./features/PolygonFeature";
 export * from "./layers/MapTileLayer";
 export * from "./layers/MapVectorLayer";
 export * from "./layers/MapWebGLTileLayer";
+export * from "./layers/MapWebGLVectorLayer";
 export * from "./map/Map";
 export * from "./map/MapContext";
 export * from "./map/map-constants";
