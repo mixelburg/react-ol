@@ -18,7 +18,21 @@
   "author": "mixelburg",
   "license": "ISC",
   "keywords": [
-    "react"
+    "react",
+    "openlayers",
+    "ol",
+    "maps",
+    "mapping",
+    "gis",
+    "geospatial",
+    "leaflet",
+    "mapbox",
+    "vector",
+    "tile",
+    "components",
+    "react-components",
+    "map-library",
+    "cartography"
   ],
   "files": [
     "dist"
