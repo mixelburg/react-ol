@@ -10,13 +10,25 @@ import {
   PolygonFeature,
   ReactMapOverlay,
   reactIconToSrc,
-  useMapRef,
+  useMapRef, MapWebGLTileLayer,
 } from "@mixelburg/react-ol";
 import { Button, Paper, Stack, Typography } from "@mui/material";
-import { OSM } from "ol/source";
 import { Circle, Fill, Icon, Stroke, Style } from "ol/style";
 import { FC, useState } from "react";
 import { FaCar } from "react-icons/fa";
+import DataTileSource from "ol/source/DataTile";
+
+const source = new DataTileSource({
+  loader: async (z, x, y) => {
+    const url = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = url;
+
+    await img.decode();
+    return img;
+  },
+});
 
 const AppWebGL: FC = () => {
   const mapRef = useMapRef();
@@ -37,7 +49,7 @@ const AppWebGL: FC = () => {
           },
         }}
       >
-        <MapTileLayer source={new OSM()} />
+        <MapWebGLTileLayer source={source} />
 
         {/* Layer 1: Car and Circle */}
         <MapVectorLayer layerId={"carCircleLayer"}>
