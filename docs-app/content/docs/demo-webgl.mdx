@@ -1,14 +1,75 @@
 ---
-title: Live Demo WebGL
-description: Interactive demo
+title: WebGL Demo
+description: Interactive demo showcasing WebGL-accelerated layers for high-performance rendering
 ---
 
 import AppWebGL from '../../app/components/AppWebGL'
 
-# Live Demo
+# WebGL Demo
+
+This demo showcases the power of WebGL-accelerated rendering with `MapWebGLTileLayer` and `MapWebGLVectorLayer` components. WebGL provides hardware-accelerated rendering for smooth interactions and the ability to display thousands of features efficiently.
 
 <AppWebGL/>
 
+## What's in This Demo
+
+This interactive demo includes:
+
+- **MapWebGLTileLayer**: WebGL-accelerated tile rendering using `DataTileSource`
+- **MapWebGLVectorLayer**: High-performance vector feature rendering
+- **Multiple Feature Types**: Points, Circles, LineStrings, and Polygons all styled with WebGL expressions
+- **Interactive Features**: All features support click events for interactivity
+- **Expression-Based Styling**: Advanced conditional styling using WebGL style expressions
+
+## Key Features
+
+### Performance Benefits
+
+WebGL rendering provides significant performance improvements:
+- Hardware-accelerated graphics processing
+- Efficient rendering of large datasets (1000+ features)
+- Smooth animations and transitions
+- Reduced CPU usage
+
+### Expression-Based Styling
+
+The demo uses WebGL style expressions for dynamic, data-driven styling:
+
+```tsx
+const vectorLayerStyle = {
+  'circle-radius': [
+    'case',
+    ['==', ['geometry-type'], 'Point'],
+    8,
+    ['==', ['geometry-type'], 'Circle'],
+    ['get', 'radius'],
+    0,
+  ],
+  'circle-fill-color': [
+    'case',
+    ['==', ['geometry-type'], 'Point'],
+    'rgba(255, 0, 0, 0.8)',
+    ['==', ['geometry-type'], 'Circle'],
+    'rgba(0, 150, 255, 0.3)',
+    'transparent',
+  ],
+  // ... more style properties
+};
+```
+
+### Feature Interaction
+
+All features in the demo support click events:
+- **Points**: Red markers with click detection
+- **Circles**: Blue circles with radius visualization
+- **Lines**: Green paths connecting points
+- **Polygons**: Orange areas with fill and stroke
+
+Try clicking on any feature to see the console output!
 
 ## Next Steps
+
+- Check out the [Layers API documentation](/docs/api-layers) for complete API reference
+- Explore the [standard demo](/docs/demo) for traditional Canvas rendering
+- View [more examples](/docs/examples) for additional use cases
 

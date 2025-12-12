@@ -249,8 +249,400 @@ const markerStyle = new Style({
 </MapVectorLayer>
 ```
 
-#### Toggling Layer Visibility
+---
 
+## MapWebGLTileLayer
+
+The `MapWebGLTileLayer` component renders WebGL-accelerated tile layers for improved performance and advanced rendering capabilities. WebGL tile layers are particularly useful for custom styling, data visualization, and working with large datasets.
+
+### Import
+
+```tsx
+import { MapWebGLTileLayer } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### source (required)
+
+- **Type:** `WebGLTileLayerOptions['source']` (from OpenLayers)
+- **Description:** The tile source to render with WebGL acceleration
+
+```tsx
+import DataTileSource from 'ol/source/DataTile';
+
+const source = new DataTileSource({
+  loader: async (z, x, y) => {
+    const url = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = url;
+    await img.decode();
+    return img;
+  },
+});
+
+<MapWebGLTileLayer source={source} />
+```
+
+#### zIndex
+
+- **Type:** `number`
+- **Optional**
+- **Description:** Stacking order of the layer (higher values appear on top)
+
+```tsx
+<MapWebGLTileLayer source={source} zIndex={0} />
+```
+
+#### opacity
+
+- **Type:** `number` (0-1)
+- **Optional**
+- **Description:** Layer opacity level
+
+```tsx
+<MapWebGLTileLayer source={source} opacity={0.8} />
+```
+
+#### visible
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether the layer is visible
+
+```tsx
+<MapWebGLTileLayer source={source} visible={true} />
+```
+
+#### style
+
+- **Type:** `WebGLTileLayerOptions["style"]`
+- **Optional**
+- **Description:** WebGL-specific styling configuration for advanced rendering effects
+
+```tsx
+<MapWebGLTileLayer
+  source={source}
+  style={{
+    // WebGL style configuration
+  }}
+/>
+```
+
+### Examples
+
+#### Basic WebGL Tile Layer
+
+```tsx
+import DataTileSource from 'ol/source/DataTile';
+
+const source = new DataTileSource({
+  loader: async (z, x, y) => {
+    const url = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = url;
+    await img.decode();
+    return img;
+  },
+});
+
+<OpenLayersMap>
+  <MapWebGLTileLayer source={source} />
+</OpenLayersMap>
+```
+
+#### With Custom Opacity
+
+```tsx
+<OpenLayersMap>
+  <MapWebGLTileLayer source={source} opacity={0.7} zIndex={0} />
+</OpenLayersMap>
+```
+
+---
+
+## MapWebGLVectorLayer
+
+The `MapWebGLVectorLayer` component renders vector features using WebGL for high-performance rendering. This is ideal for displaying large numbers of features with smooth interactions and animations.
+
+### Import
+
+```tsx
+import { MapWebGLVectorLayer } from '@mixelburg/react-ol';
+```
+
+### Props
+
+#### layerId (required)
+
+- **Type:** `string`
+- **Description:** Unique identifier for the layer
+
+```tsx
+<MapWebGLVectorLayer layerId="webgl-features">
+  {/* features */}
+</MapWebGLVectorLayer>
+```
+
+#### style (required)
+
+- **Type:** `WebGLVectorLayerOptions["style"]`
+- **Description:** WebGL style configuration using expression syntax for high-performance styling
+
+```tsx
+const webglStyle = {
+  'circle-radius': 8,
+  'circle-fill-color': 'rgba(255, 0, 0, 0.8)',
+  'circle-stroke-color': 'rgba(200, 0, 0, 1)',
+  'circle-stroke-width': 2,
+  'stroke-color': 'rgba(0, 200, 0, 0.9)',
+  'stroke-width': 4,
+  'fill-color': 'rgba(255, 165, 0, 0.3)',
+};
+
+<MapWebGLVectorLayer layerId="features" style={webglStyle}>
+  {/* features */}
+</MapWebGLVectorLayer>
+```
+
+#### features
+
+- **Type:** `Feature[]` (OpenLayers features)
+- **Optional**
+- **Description:** Array of OpenLayers features to display (alternative to using feature components as children)
+
+```tsx
+import { Feature } from 'ol';
+import { Point } from 'ol/geom';
+
+const features = [
+  new Feature({ geometry: new Point([...]) }),
+  // more features...
+];
+
+<MapWebGLVectorLayer layerId="bulk" style={webglStyle} features={features} />
+```
+
+#### zIndex
+
+- **Type:** `number`
+- **Optional**
+- **Description:** Stacking order of the layer
+
+```tsx
+<MapWebGLVectorLayer layerId="background" style={webglStyle} zIndex={1} />
+```
+
+#### visible
+
+- **Type:** `boolean`
+- **Default:** `true`
+- **Description:** Whether the layer is visible
+
+```tsx
+<MapWebGLVectorLayer layerId="markers" style={webglStyle} visible={true}>
+  {/* features */}
+</MapWebGLVectorLayer>
+```
+
+#### disableHitDetection
+
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Disable hit detection for better performance when feature interaction is not needed
+
+```tsx
+<MapWebGLVectorLayer
+  layerId="background"
+  style={webglStyle}
+  disableHitDetection={true}
+>
+  {/* features */}
+</MapWebGLVectorLayer>
+```
+
+#### children
+
+- **Type:** `ReactNode`
+- **Optional**
+- **Description:** Feature components to render in this layer
+
+```tsx
+<MapWebGLVectorLayer layerId="my-features" style={webglStyle}>
+  <PointFeature coordinates={{ lat: 32, long: 34 }} />
+  <LineStringFeature coordinates={[...]} />
+  <PolygonFeature coordinates={[...]} />
+  <CircleFeature center={{ lat: 32, long: 34 }} radius={500} />
+</MapWebGLVectorLayer>
+```
+
+### Examples
+
+#### Basic WebGL Vector Layer with Different Feature Types
+
+```tsx
+import type { Options as WebGLVectorLayerOptions } from 'ol/layer/WebGLVector';
+
+const vectorLayerStyle: WebGLVectorLayerOptions['style'] = {
+  'circle-radius': [
+    'case',
+    ['==', ['geometry-type'], 'Point'],
+    8,
+    ['==', ['geometry-type'], 'Circle'],
+    ['get', 'radius'],
+    0,
+  ],
+  'circle-fill-color': [
+    'case',
+    ['==', ['geometry-type'], 'Point'],
+    'rgba(255, 0, 0, 0.8)',
+    ['==', ['geometry-type'], 'Circle'],
+    'rgba(0, 150, 255, 0.3)',
+    'transparent',
+  ],
+  'circle-stroke-color': [
+    'case',
+    ['==', ['geometry-type'], 'Point'],
+    'rgba(200, 0, 0, 1)',
+    ['==', ['geometry-type'], 'Circle'],
+    'rgba(0, 100, 200, 0.8)',
+    'transparent',
+  ],
+  'circle-stroke-width': 2,
+  'stroke-color': [
+    'case',
+    ['==', ['geometry-type'], 'LineString'],
+    'rgba(0, 200, 0, 0.9)',
+    ['==', ['geometry-type'], 'Polygon'],
+    'rgba(255, 165, 0, 0.9)',
+    'rgba(100, 100, 100, 0.8)',
+  ],
+  'stroke-width': [
+    'case',
+    ['==', ['geometry-type'], 'LineString'],
+    4,
+    ['==', ['geometry-type'], 'Polygon'],
+    3,
+    2,
+  ],
+  'fill-color': [
+    'case',
+    ['==', ['geometry-type'], 'Polygon'],
+    'rgba(255, 165, 0, 0.3)',
+    'transparent',
+  ],
+};
+
+<OpenLayersMap>
+  <MapWebGLTileLayer source={tileSource} />
+
+  <MapWebGLVectorLayer layerId="webgl-features" style={vectorLayerStyle}>
+    <PointFeature
+      coordinates={{ long: 34.78, lat: 32.085 }}
+      onClick={(feature, event) => {
+        console.log('Point clicked:', feature, event);
+      }}
+    />
+
+    <CircleFeature
+      center={{ long: 34.79, lat: 32.087 }}
+      radius={500}
+      onClick={(feature, event) => {
+        console.log('Circle clicked:', feature, event);
+      }}
+    />
+
+    <LineStringFeature
+      coordinates={[
+        { long: 34.78, lat: 32.085 },
+        { long: 34.785, lat: 32.09 },
+        { long: 34.79, lat: 32.087 },
+      ]}
+      onClick={(feature, event) => {
+        console.log('Line clicked:', feature, event);
+      }}
+    />
+
+    <PolygonFeature
+      coordinates={[
+        { long: 34.775, lat: 32.083 },
+        { long: 34.788, lat: 32.083 },
+        { long: 34.788, lat: 32.092 },
+        { long: 34.775, lat: 32.092 },
+      ]}
+      onClick={(feature, event) => {
+        console.log('Polygon clicked:', feature, event);
+      }}
+    />
+  </MapWebGLVectorLayer>
+</OpenLayersMap>
+```
+
+#### High-Performance Layer with Disabled Hit Detection
+
+```tsx
+// For static features where you don't need click/hover events
+<MapWebGLVectorLayer
+  layerId="static-background"
+  style={webglStyle}
+  disableHitDetection={true}
+>
+  {/* Thousands of features */}
+</MapWebGLVectorLayer>
+```
+
+### WebGL Style Expressions
+
+WebGL vector layer styles use expression-based syntax for powerful, data-driven styling:
+
+```tsx
+const style = {
+  // Simple static values
+  'circle-radius': 10,
+  'circle-fill-color': 'red',
+
+  // Conditional styling
+  'circle-radius': [
+    'case',
+    ['==', ['geometry-type'], 'Point'],
+    8,
+    ['get', 'radius'],  // Use feature property
+  ],
+
+  // Data-driven colors
+  'circle-fill-color': [
+    'interpolate',
+    ['linear'],
+    ['get', 'value'],
+    0, 'blue',
+    50, 'yellow',
+    100, 'red',
+  ],
+};
+```
+
+---
+
+## Performance Comparison
+
+### When to Use WebGL Layers
+
+**Use `MapWebGLTileLayer` and `MapWebGLVectorLayer` when:**
+- Rendering large numbers of features (1000+)
+- Need advanced styling with expressions
+- Require smooth animations and interactions
+- Working with data visualizations
+- Performance is critical
+
+**Use standard `MapTileLayer` and `MapVectorLayer` when:**
+- Simple maps with few features
+- Standard styling is sufficient
+- Broader browser compatibility is needed
+- Easier debugging and development
+
+````
 ```tsx
 function MyMap() {
   const [showMarkers, setShowMarkers] = useState(true);
