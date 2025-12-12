@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "demo",
+    "demo-webgl",
     "examples",
     "---Getting Started",
     "api-map",
