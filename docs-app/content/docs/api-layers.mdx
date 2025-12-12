@@ -201,6 +201,61 @@ const [showMarkers, setShowMarkers] = useState(true);
 </MapVectorLayer>
 ```
 
+#### clustering
+
+- **Type:** `{ enabled: boolean; distance?: number; renderCluster?: (features: Feature[]) => ReactNode }`
+- **Optional**
+- **Description:** Clustering configuration for grouping nearby features
+
+**Properties:**
+
+- `enabled`: Enable or disable clustering
+- `distance`: Distance in pixels within which features will be clustered (default: 40)
+- `renderCluster`: Function that receives an array of clustered features and returns a React component to render the cluster
+
+```tsx
+import { toLonLat } from 'ol/proj';
+
+<MapVectorLayer
+  layerId="clustered-points"
+  clustering={{
+    enabled: true,
+    distance: 50,
+    renderCluster: (features) => {
+      const count = features.length;
+      const clusterStyle = new Style({
+        image: new Circle({
+          radius: 10 + Math.sqrt(count) * 2,
+          fill: new Fill({ color: '#ef4444' }),
+          stroke: new Stroke({ color: 'white', width: 2 }),
+        }),
+        text: new Text({
+          text: count.toString(),
+          fill: new Fill({ color: 'white' }),
+          font: 'bold 12px sans-serif',
+        }),
+      });
+
+      const geometry = features[0].getGeometry();
+      const [long, lat] = toLonLat(geometry.getCoordinates());
+
+      return (
+        <PointFeature
+          coordinates={{ lat, long }}
+          style={clusterStyle}
+        />
+      );
+    },
+  }}
+>
+  <PointFeature coordinates={{ lat: 32, long: 34 }} />
+  <PointFeature coordinates={{ lat: 32.01, long: 34.01 }} />
+  {/* More points... */}
+</MapVectorLayer>
+```
+
+**See also:** [Clustering Demo](/docs/demo-clustering) for a complete interactive example.
+
 ### Examples
 
 #### Basic Vector Layer
