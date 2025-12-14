@@ -13,6 +13,7 @@ export const MapView = ({
   onCenterChange,
   zoom,
   onZoomChange,
+  ...viewOptions
 }: MapViewProps) => {
   const { mapInstance } = useMapContext();
   const isControlledCenter = center !== undefined;
@@ -39,6 +40,7 @@ export const MapView = ({
       center,
       zoom: defaultZoom,
       projection: "EPSG:3857",
+      ...viewOptions,
     });
 
     mapInstance.setView(view);

@@ -1,8 +1,9 @@
 import { MapBrowserEvent, Map as OLMap } from "ol";
+import type { ViewOptions } from "ol/View";
 import { ReactNode } from "react";
 import { Coordinates, MapLayersMap } from "../utils";
 
-export interface MapViewProps {
+export interface MapViewProps extends Omit<ViewOptions, "center" | "zoom"> {
   // Uncontrolled props (default values)
   defaultCenter?: Coordinates;
   defaultZoom?: number;
