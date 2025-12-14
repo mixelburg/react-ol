@@ -44,17 +44,17 @@ Note: OpenLayers (`ol`) is a peer dependency and must be installed separately.
 Here's a minimal example to get you started:
 
 ```tsx
-import { OpenLayersMap, MapTileLayer, PointFeature } from '@mixelburg/react-ol';
+import { OpenLayersMap, MapView, MapTileLayer, MapVectorLayer, PointFeature } from '@mixelburg/react-ol';
 import { OSM } from 'ol/source';
 import { Circle, Fill, Style } from 'ol/style';
 import 'ol/ol.css';
 
 function App() {
   return (
-    <OpenLayersMap
-      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
-      defaultZoom={13}
-    >
+    <OpenLayersMap>
+      {/* Configure the map view */}
+      <MapView defaultCenter={{ lat: 32.0853, long: 34.7818 }} defaultZoom={13} />
+
       {/* Add a base tile layer */}
       <MapTileLayer source={new OSM()} />
 
@@ -79,11 +79,12 @@ function App() {
 
 ### Map Component
 
-The `OpenLayersMap` component is the root container for your map. It can be controlled or uncontrolled:
+The `OpenLayersMap` component is the root container for your map, and `MapView` manages the viewport (center and zoom).
 
 **Uncontrolled** (default behavior):
 ```tsx
-<OpenLayersMap defaultCenter={{ lat: 32, long: 34 }} defaultZoom={10}>
+<OpenLayersMap>
+  <MapView defaultCenter={{ lat: 32, long: 34 }} defaultZoom={10} />
   {/* children */}
 </OpenLayersMap>
 ```
@@ -93,12 +94,13 @@ The `OpenLayersMap` component is the root container for your map. It can be cont
 const [center, setCenter] = useState({ lat: 32, long: 34 });
 const [zoom, setZoom] = useState(10);
 
-<OpenLayersMap
-  center={center}
-  onCenterChange={setCenter}
-  zoom={zoom}
-  onZoomChange={setZoom}
->
+<OpenLayersMap>
+  <MapView
+    center={center}
+    onCenterChange={setCenter}
+    zoom={zoom}
+    onZoomChange={setZoom}
+  />
   {/* children */}
 </OpenLayersMap>
 ```

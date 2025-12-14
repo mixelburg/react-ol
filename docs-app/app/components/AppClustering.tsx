@@ -4,7 +4,7 @@ import {Box, FormControlLabel, Paper, Slider, Stack, Switch, Typography} from "@
 import {OSM} from "ol/source";
 import {Circle, Fill, Stroke, Style, Text} from "ol/style";
 import {FC, useMemo, useState} from "react";
-import {MapTileLayer, MapVectorLayer, OpenLayersMap, PointFeature, useMapRef,} from "@mixelburg/react-ol";
+import {MapTileLayer, MapVectorLayer, MapView, OpenLayersMap, PointFeature, useMapRef,} from "@mixelburg/react-ol";
 import CircleStyle from "ol/style/Circle";
 
 // Generate random points in Israel area
@@ -117,11 +117,13 @@ const AppClustering: FC = () => {
 
       <OpenLayersMap
         ref={mapRef}
-        center={center}
-        zoom={zoom}
-        onZoomChange={setZoom}
         wrapperProps={{ style: { width: "100%", height: "600px" } }}
       >
+        <MapView
+          center={center}
+          zoom={zoom}
+          onZoomChange={setZoom}
+        />
         <MapTileLayer source={new OSM()} />
 
         <MapVectorLayer

@@ -11,6 +11,7 @@ export * from "./layers/MapWebGLTileLayer";
 export * from "./layers/MapWebGLVectorLayer";
 export * from "./map/Map";
 export * from "./map/MapContext";
+export * from "./map/MapView";
 export * from "./map/map-constants";
 export * from "./map/map-helpers";
 export * from "./map/map-types";

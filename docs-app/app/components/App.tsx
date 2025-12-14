@@ -13,6 +13,7 @@ import {
   LineStringFeature,
   MapTileLayer,
   MapVectorLayer,
+  MapView,
   OpenLayersMap,
   PointFeature,
   PolygonFeature,
@@ -225,10 +226,6 @@ const App: FC = () => {
 
       <OpenLayersMap
         ref={mapRef}
-        center={center}
-        onCenterChange={setCenter}
-        zoom={zoom}
-        onZoomChange={setZoom}
         wrapperProps={{
           style: {
             height: "500px",
@@ -236,6 +233,12 @@ const App: FC = () => {
           },
         }}
       >
+        <MapView
+          center={center}
+          onCenterChange={setCenter}
+          zoom={zoom}
+          onZoomChange={setZoom}
+        />
         <MapTileLayer source={new OSM()} />
 
         {/* Layer 1: Car and Circle */}

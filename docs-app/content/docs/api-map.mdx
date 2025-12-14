@@ -7,67 +7,16 @@ description: Complete API reference for the OpenLayersMap component
 
 The `OpenLayersMap` component is the root container for all map functionality. It manages the OpenLayers map instance and provides context to child components.
 
+> **Note:** View-related props (center, zoom, etc.) have been moved to the `MapView` component. See the MapView section below for details.
+
 ## Import
 
 ```tsx
-import { OpenLayersMap } from '@mixelburg/react-ol';
+import { OpenLayersMap, MapView } from '@mixelburg/react-ol';
 ```
 
 ## Props
 
-### defaultCenter
-
-- **Type:** `Coordinates` (`{ lat: number, long: number }`)
-- **Default:** `{ lat: 0, long: 0 }`
-- **Description:** Initial center position of the map (uncontrolled mode)
-
-```tsx
-<OpenLayersMap defaultCenter={{ lat: 32.0853, long: 34.7818 }} />
-```
-
-### defaultZoom
-
-- **Type:** `number`
-- **Default:** `8`
-- **Description:** Initial zoom level of the map (uncontrolled mode)
-
-```tsx
-<OpenLayersMap defaultZoom={13} />
-```
-
-### center
-
-- **Type:** `Coordinates` (`{ lat: number, long: number }`)
-- **Optional**
-- **Description:** Current center position (controlled mode). When provided, the component becomes controlled.
-
-```tsx
-const [center, setCenter] = useState({ lat: 32, long: 34 });
-<OpenLayersMap center={center} onCenterChange={setCenter} />
-```
-
-### onCenterChange
-
-- **Type:** `(center: Coordinates) => void`
-- **Optional**
-- **Description:** Callback fired when the map center changes (panning, dragging)
-
-### zoom
-
-- **Type:** `number`
-- **Optional**
-- **Description:** Current zoom level (controlled mode). When provided, the component becomes controlled.
-
-```tsx
-const [zoom, setZoom] = useState(13);
-<OpenLayersMap zoom={zoom} onZoomChange={setZoom} />
-```
-
-### onZoomChange
-
-- **Type:** `(zoom: number) => void`
-- **Optional**
-- **Description:** Callback fired when the zoom level changes
 
 ### onClick
 
@@ -202,11 +151,8 @@ const layers = mapRef.current?.getLayers();
 ```tsx
 function MyMap() {
   return (
-    <OpenLayersMap
-      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
-      defaultZoom={13}
-      wrapperProps={{ style: { width: '100%', height: '500px' }}}
-    >
+    <OpenLayersMap wrapperProps={{ style: { width: '100%', height: '500px' }}}>
+      <MapView defaultCenter={{ lat: 32.0853, long: 34.7818 }} defaultZoom={13} />
       <MapTileLayer source={new OSM()} />
     </OpenLayersMap>
   );
@@ -227,13 +173,13 @@ function MyMap() {
         <button onClick={() => setZoom(zoom - 1)}>Zoom Out</button>
       </div>
 
-      <OpenLayersMap
-        center={center}
-        onCenterChange={setCenter}
-        zoom={zoom}
-        onZoomChange={setZoom}
-        wrapperProps={{ style: { width: '100%', height: '500px' }}}
-      >
+      <OpenLayersMap wrapperProps={{ style: { width: '100%', height: '500px' }}}>
+        <MapView
+          center={center}
+          onCenterChange={setCenter}
+          zoom={zoom}
+          onZoomChange={setZoom}
+        />
         <MapTileLayer source={new OSM()} />
       </OpenLayersMap>
     </div>
@@ -260,11 +206,8 @@ function MyMap() {
       <button onClick={flyToLocation}>Go to NYC</button>
       <button onClick={fitAllFeatures}>Fit All</button>
 
-      <OpenLayersMap
-        ref={mapRef}
-        defaultCenter={{ lat: 32.0853, long: 34.7818 }}
-        defaultZoom={13}
-      >
+      <OpenLayersMap ref={mapRef}>
+        <MapView defaultCenter={{ lat: 32.0853, long: 34.7818 }} defaultZoom={13} />
         {/* layers and features */}
       </OpenLayersMap>
     </div>
@@ -272,10 +215,78 @@ function MyMap() {
 }
 ```
 
+---
+
+# MapView
+
+The `MapView` component manages the map's viewport - its center position and zoom level. It must be used as a child of `OpenLayersMap`.
+
+## Import
+
+```tsx
+import { MapView } from '@mixelburg/react-ol';
+```
+
+## Props
+
+### defaultCenter
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Default:** `{ lat: 0, long: 0 }`
+- **Description:** Initial center position of the map (uncontrolled mode)
+
+```tsx
+<MapView defaultCenter={{ lat: 32.0853, long: 34.7818 }} />
+```
+
+### defaultZoom
+
+- **Type:** `number`
+- **Default:** `8`
+- **Description:** Initial zoom level of the map (uncontrolled mode)
+
+```tsx
+<MapView defaultZoom={13} />
+```
+
+### center
+
+- **Type:** `Coordinates` (`{ lat: number, long: number }`)
+- **Optional**
+- **Description:** Current center position (controlled mode). When provided, the component becomes controlled.
+
+```tsx
+const [center, setCenter] = useState({ lat: 32, long: 34 });
+<MapView center={center} onCenterChange={setCenter} />
+```
+
+### onCenterChange
+
+- **Type:** `(center: Coordinates) => void`
+- **Optional**
+- **Description:** Callback fired when the map center changes (panning, dragging)
+
+### zoom
+
+- **Type:** `number`
+- **Optional**
+- **Description:** Current zoom level (controlled mode). When provided, the component becomes controlled.
+
+```tsx
+const [zoom, setZoom] = useState(13);
+<MapView zoom={zoom} onZoomChange={setZoom} />
+```
+
+### onZoomChange
+
+- **Type:** `(zoom: number) => void`
+- **Optional**
+- **Description:** Callback fired when the zoom level changes
+
 ## Notes
 
-- The map component automatically handles coordinate transformation between lat/long (EPSG:4326) and Web Mercator (EPSG:3857)
+- The MapView component automatically handles coordinate transformation between lat/long (EPSG:4326) and Web Mercator (EPSG:3857)
 - In controlled mode, the component will update when `center` or `zoom` props change
-- The map creates an OpenLayers `View` with projection `"EPSG:3857"` by default
-- Click events provide coordinates in lat/long format for convenience
+- The component creates an OpenLayers `View` with projection `"EPSG:3857"` by default
+- MapView must be a child of OpenLayersMap to function properly
 

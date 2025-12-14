@@ -1,13 +1,11 @@
-import { MapBrowserEvent, Map as OLMap, View } from "ol";
+import { MapBrowserEvent, Map as OLMap } from "ol";
 import BaseLayer from "ol/layer/Base";
 import { fromLonLat, toLonLat } from "ol/proj";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import "ol/ol.css";
 import { MapLayersMap } from "../utils";
 import { MapContext } from "./MapContext";
-import { DEFAULT_MAP_CENTER } from "./map-constants";
 import {
-  areCentersEqual,
   calculateFeaturesExtent,
   calculateLayerExtents,
   coordinatesToLonLat,
@@ -19,12 +17,6 @@ import { MapProps, MapRef } from "./map-types";
 export const OpenLayersMap = forwardRef<MapRef, MapProps>(
   (
     {
-      defaultCenter = DEFAULT_MAP_CENTER,
-      defaultZoom = 8,
-      center,
-      onCenterChange,
-      zoom,
-      onZoomChange,
       children,
       onClick,
       wrapperProps,
@@ -35,34 +27,14 @@ export const OpenLayersMap = forwardRef<MapRef, MapProps>(
     const mapInstanceRef = useRef<OLMap | null>(null);
     const [, forceUpdate] = useState({});
     const layersRef = useRef<MapLayersMap>({});
-    const isControlledCenter = center !== undefined;
-    const isControlledZoom = zoom !== undefined;
-    // Track if we're updating programmatically to avoid feedback loops
-    const isProgrammaticUpdateRef = useRef(false);
-
-    // Helper to set programmatic update flag temporarily
-    const setProgrammaticUpdate = useCallback((callback: () => void) => {
-      isProgrammaticUpdateRef.current = true;
-      callback();
-      setTimeout(() => {
-        isProgrammaticUpdateRef.current = false;
-      }, 0);
-    }, []);
 
     // Initialize map - only once, no dependencies to avoid recreation
     useEffect(() => {
       if (!containerRef.current || mapInstanceRef.current) return;
 
-      const center = fromLonLat([defaultCenter.long, defaultCenter.lat]);
-
       mapInstanceRef.current = new OLMap({
         target: containerRef.current,
         layers: [],
-        view: new View({
-          center,
-          zoom: defaultZoom,
-          projection: "EPSG:3857",
-        }),
       });
 
       forceUpdate({}); // Trigger re-render to provide context
@@ -73,65 +45,7 @@ export const OpenLayersMap = forwardRef<MapRef, MapProps>(
           mapInstanceRef.current = null;
         }
       };
-    }, [defaultCenter.lat, defaultCenter.long, defaultZoom]);
-
-    // Handle controlled center
-    useEffect(() => {
-      if (!mapInstanceRef.current || !isControlledCenter || !center) return;
-
-      const view = mapInstanceRef.current.getView();
-      const currentCenter = view.getCenter();
-      const newCenter = fromLonLat(coordinatesToLonLat(center));
-
-      if (!areCentersEqual(currentCenter, newCenter)) {
-        setProgrammaticUpdate(() => view.setCenter(newCenter));
-      }
-    }, [center, isControlledCenter, setProgrammaticUpdate]);
-
-    // Handle controlled zoom
-    useEffect(() => {
-      if (!mapInstanceRef.current || !isControlledZoom || zoom === undefined) return;
-
-      const view = mapInstanceRef.current.getView();
-      const currentZoom = view.getZoom();
-
-      if (currentZoom !== zoom) {
-        setProgrammaticUpdate(() => view.setZoom(zoom));
-      }
-    }, [zoom, isControlledZoom, setProgrammaticUpdate]);
-
-    // Emit center/zoom changes when map moves (for controlled components)
-    const handleMoveEnd = useCallback(() => {
-      if (!mapInstanceRef.current || isProgrammaticUpdateRef.current) return;
-
-      const view = mapInstanceRef.current.getView();
-
-      if (onCenterChange) {
-        const centerCoord = view.getCenter();
-        if (centerCoord) {
-          onCenterChange(lonLatToCoordinates(toLonLat(centerCoord)));
-        }
-      }
-
-      if (onZoomChange) {
-        const currentZoom = view.getZoom();
-        if (currentZoom !== undefined) {
-          onZoomChange(currentZoom);
-        }
-      }
-    }, [onCenterChange, onZoomChange]);
-
-    useEffect(() => {
-      if (!mapInstanceRef.current) return;
-
-      mapInstanceRef.current.on("moveend", handleMoveEnd);
-
-      return () => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.un("moveend", handleMoveEnd);
-        }
-      };
-    }, [handleMoveEnd]);
+    }, []);
 
     // Handle click events
     useEffect(() => {

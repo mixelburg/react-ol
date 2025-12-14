@@ -14,17 +14,14 @@ This page contains practical examples and common use cases for react-ol.
 The most basic map with a tile layer:
 
 ```tsx
-import { OpenLayersMap, MapTileLayer } from '@mixelburg/react-ol';
+import { OpenLayersMap, MapView, MapTileLayer } from '@mixelburg/react-ol';
 import { OSM } from 'ol/source';
 import 'ol/ol.css';
 
 function App() {
   return (
-    <OpenLayersMap
-      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
-      defaultZoom={10}
-      wrapperProps={{ style: { width: '100%', height: '600px' }}}
-    >
+    <OpenLayersMap wrapperProps={{ style: { width: '100%', height: '600px' }}}>
+      <MapView defaultCenter={{ lat: 32.0853, long: 34.7818 }} defaultZoom={10} />
       <MapTileLayer source={new OSM()} />
     </OpenLayersMap>
   );
@@ -50,11 +47,8 @@ const markerStyle = new Style({
 
 function App() {
   return (
-    <OpenLayersMap
-      defaultCenter={{ lat: 32.0853, long: 34.7818 }}
-      defaultZoom={13}
-      wrapperProps={{ style: { width: '100%', height: '600px' }}}
-    >
+    <OpenLayersMap wrapperProps={{ style: { width: '100%', height: '600px' }}}>
+      <MapView defaultCenter={{ lat: 32.0853, long: 34.7818 }} defaultZoom={13} />
       <MapTileLayer source={new OSM()} />
 
       <MapVectorLayer layerId="markers">
@@ -142,7 +136,8 @@ const hoverStyle = new Style({
 
 function App() {
   return (
-    <OpenLayersMap defaultCenter={{ lat: 32, long: 34 }} defaultZoom={13}>
+    <OpenLayersMap>
+      <MapView defaultCenter={{ lat: 32, long: 34 }} defaultZoom={13} />
       <MapTileLayer source={new OSM()} />
 
       <MapVectorLayer layerId="markers">

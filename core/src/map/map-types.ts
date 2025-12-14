@@ -2,7 +2,7 @@ import { MapBrowserEvent, Map as OLMap } from "ol";
 import { ReactNode } from "react";
 import { Coordinates, MapLayersMap } from "../utils";
 
-export interface MapProps {
+export interface MapViewProps {
   // Uncontrolled props (default values)
   defaultCenter?: Coordinates;
   defaultZoom?: number;
@@ -11,6 +11,9 @@ export interface MapProps {
   onCenterChange?: (center: Coordinates) => void;
   zoom?: number;
   onZoomChange?: (zoom: number) => void;
+}
+
+export interface MapProps {
   elevation?: number;
   children?: ReactNode;
   onClick?: (coordinate: Coordinates, event: MapBrowserEvent<any>) => void;

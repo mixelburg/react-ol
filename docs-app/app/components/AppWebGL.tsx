@@ -3,6 +3,7 @@
 import {
   CircleFeature,
   LineStringFeature,
+  MapView,
   MapWebGLTileLayer,
   MapWebGLVectorLayer,
   OpenLayersMap,
@@ -85,7 +86,6 @@ const AppWebGL: FC = () => {
     <Stack alignItems="center" component={Paper} spacing={2} padding={2}>
       <OpenLayersMap
         ref={mapRef}
-        defaultZoom={13}
         wrapperProps={{
           style: {
             height: "500px",
@@ -93,6 +93,7 @@ const AppWebGL: FC = () => {
           },
         }}
       >
+        <MapView defaultZoom={13} />
         <MapWebGLTileLayer source={source} />
 
         {/* WebGL Vector Layer for High-Performance Rendering - All Features */}
