@@ -1,0 +1,286 @@
+# react-ol
+
+> React component library for OpenLayers maps. Provides composable React components wrapping the OpenLayers (`ol`) API — render maps, tile/vector layers, geometry features, and custom overlays declaratively.
+
+**Package:** `@mixelburg/react-ol`
+**npm:** https://www.npmjs.com/package/@mixelburg/react-ol
+**Docs:** https://mixelburg.github.io/react-ol
+**Source:** https://github.com/mixelburg/react-ol
+**Peer deps:** `ol ^10.7`, `react ^19`, `react-dom ^19`
+
+---
+
+## Installation
+
+```bash
+bun add @mixelburg/react-ol ol
+# or
+npm install @mixelburg/react-ol ol
+```
+
+Import the OpenLayers stylesheet once in your app entry:
+
+```ts
+import "ol/ol.css";
+```
+
+---
+
+## Core Concepts
+
+- **`<OpenLayersMap>`** — root container. Creates and provides the OL map instance via React context.
+- **`<MapView>`** — controls the viewport (center, zoom). Can be uncontrolled (defaultCenter/defaultZoom) or fully controlled.
+- **Layers** — `<MapTileLayer>`, `<MapVectorLayer>`, `<MapWebGLTileLayer>`, `<MapWebGLVectorLayer>` — add/remove layers declaratively as children of `<OpenLayersMap>`.
+- **Features** — `<PointFeature>`, `<LineStringFeature>`, `<PolygonFeature>`, `<CircleFeature>` — must be children of a `<MapVectorLayer>`.
+- **`<ReactMapOverlay>`** — render arbitrary React JSX at a geographic coordinate (tooltips, popups, markers).
+
+All coordinates use `{ lat: number, long: number }` (WGS-84 / EPSG:4326). Internal conversion to/from EPSG:3857 is handled automatically.
+
+---
+
+## API Reference
+
+### `<OpenLayersMap>`
+
+```tsx
+import { OpenLayersMap } from "@mixelburg/react-ol";
+
+<OpenLayersMap
+  onClick={(coords, event) => console.log(coords)}  // { lat, long }
+  wrapperProps={{ style: { width: "100%", height: "400px" } }}
+  ref={mapRef}                                        // MapRef
+>
+  {/* MapView, layers, overlays */}
+</OpenLayersMap>
+```
+
+**`MapRef` methods:**
+- `getMap(): OLMap | null` — raw OL map instance
+- `fitToFeatures(features, opts?)` — fit view to array of OL Features
+- `fitToLayers(layers, opts?)` — fit view to array of OL layers
+- `fitToCoordinates(coords[], opts?)` — fit view to array of `{ lat, long }`
+
+---
+
+### `<MapView>`
+
+```tsx
+import { MapView } from "@mixelburg/react-ol";
+
+// Uncontrolled
+<MapView defaultCenter={{ lat: 51.5, long: -0.09 }} defaultZoom={13} />
+
+// Controlled
+<MapView
+  center={center}
+  onCenterChange={setCenter}
+  zoom={zoom}
+  onZoomChange={setZoom}
+  minZoom={5}
+  maxZoom={20}
+/>
+```
+
+Extends OpenLayers `ViewOptions` minus `center`/`zoom` (those are replaced by the lat/long-based props above).
+
+---
+
+### `<MapTileLayer>`
+
+```tsx
+import { MapTileLayer } from "@mixelburg/react-ol";
+import OSM from "ol/source/OSM";
+import XYZ from "ol/source/XYZ";
+
+<MapTileLayer source={new OSM()} />
+
+<MapTileLayer
+  source={new XYZ({ url: "https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png" })}
+  zIndex={0}
+  opacity={0.8}
+  visible={true}
+/>
+```
+
+---
+
+### `<MapVectorLayer>`
+
+```tsx
+import { MapVectorLayer } from "@mixelburg/react-ol";
+
+<MapVectorLayer zIndex={1} style={myStyle}>
+  <PointFeature coordinates={{ lat: 51.5, long: -0.09 }} />
+  <PolygonFeature coordinates={[...]} />
+</MapVectorLayer>
+```
+
+---
+
+### `<PointFeature>`
+
+```tsx
+import { PointFeature } from "@mixelburg/react-ol";
+import { Style, Circle, Fill } from "ol/style";
+
+<PointFeature
+  coordinates={{ lat: 51.505, long: -0.09 }}
+  style={new Style({ image: new Circle({ radius: 6, fill: new Fill({ color: "red" }) }) })}
+  hoverStyle={hoverStyle}
+  properties={{ id: "marker-1", label: "HQ" }}
+  onClick={(feature, event) => console.log(feature.get("id"))}
+  onMouseEnter={(feature) => setHovered(feature)}
+  onMouseExit={() => setHovered(null)}
+/>
+```
+
+---
+
+### `<LineStringFeature>`
+
+```tsx
+<LineStringFeature
+  coordinates={[
+    { lat: 51.5, long: -0.09 },
+    { lat: 51.51, long: -0.1 },
+    { lat: 51.52, long: -0.08 },
+  ]}
+  style={lineStyle}
+  onClick={(feature, event) => {}}
+/>
+```
+
+---
+
+### `<PolygonFeature>`
+
+```tsx
+<PolygonFeature
+  coordinates={[
+    { lat: 51.50, long: -0.10 },
+    { lat: 51.51, long: -0.10 },
+    { lat: 51.51, long: -0.08 },
+    { lat: 51.50, long: -0.08 },
+    { lat: 51.50, long: -0.10 }, // close the ring
+  ]}
+  style={fillStyle}
+/>
+```
+
+---
+
+### `<CircleFeature>`
+
+```tsx
+<CircleFeature
+  center={{ lat: 51.5, long: -0.09 }}
+  radius={500}   // metres
+  style={circleStyle}
+/>
+```
+
+---
+
+### `<ReactMapOverlay>`
+
+Render any React element pinned to a geographic coordinate (popups, custom markers, labels):
+
+```tsx
+import { ReactMapOverlay } from "@mixelburg/react-ol";
+
+<ReactMapOverlay
+  coordinates={{ lat: 51.505, long: -0.09 }}
+  transform="translate(-50%, -100%)"   // CSS transform, default centres above point
+  className="my-popup"
+  style={{ pointerEvents: "none" }}
+>
+  <div className="popup">Hello, map!</div>
+</ReactMapOverlay>
+```
+
+---
+
+### `useMapRef` hook
+
+Access the OL map instance imperatively inside a child of `<OpenLayersMap>`:
+
+```tsx
+import { useMapRef } from "@mixelburg/react-ol";
+
+const MyControl = () => {
+  const map = useMapRef();               // OLMap | null
+  const handleFit = () => map?.getView().fit(extent);
+  return <button onClick={handleFit}>Fit</button>;
+};
+```
+
+---
+
+### `reactIconToSrc` utility
+
+Convert a React SVG element into a data URI for use as an OL icon source:
+
+```tsx
+import { reactIconToSrc } from "@mixelburg/react-ol";
+import { Icon, Style } from "ol/style";
+
+const style = new Style({
+  image: new Icon({ src: reactIconToSrc(<MyIcon />) }),
+});
+```
+
+---
+
+## Full Example
+
+```tsx
+import { OpenLayersMap, MapView, MapTileLayer, MapVectorLayer, PointFeature, ReactMapOverlay } from "@mixelburg/react-ol";
+import OSM from "ol/source/OSM";
+import "ol/ol.css";
+
+export default function App() {
+  return (
+    <OpenLayersMap
+      wrapperProps={{ style: { width: "100vw", height: "100vh" } }}
+      onClick={(coords) => console.log("clicked", coords)}
+    >
+      <MapView defaultCenter={{ lat: 51.505, long: -0.09 }} defaultZoom={13} />
+
+      <MapTileLayer source={new OSM()} />
+
+      <MapVectorLayer>
+        <PointFeature coordinates={{ lat: 51.505, long: -0.09 }} />
+      </MapVectorLayer>
+
+      <ReactMapOverlay coordinates={{ lat: 51.505, long: -0.09 }}>
+        <div style={{ background: "white", padding: 4, borderRadius: 4 }}>London HQ</div>
+      </ReactMapOverlay>
+    </OpenLayersMap>
+  );
+}
+```
+
+---
+
+## Types
+
+```ts
+type Coordinates = { lat: number; long: number };
+
+type BaseFeatureProps = {
+  style?: StyleLike;
+  hoverStyle?: StyleLike;
+  properties?: Record<string, any>;
+  visible?: boolean;
+  onClick?: (feature: Feature, event: any) => void;
+  onMouseEnter?: (feature: Feature, event: any) => void;
+  onMouseExit?: (feature: Feature, event: any) => void;
+};
+
+interface MapRef {
+  getMap(): OLMap | null;
+  fitToFeatures(features: Feature[], options?: FitOptions): void;
+  fitToLayers(layers: BaseLayer[], options?: FitOptions): void;
+  fitToCoordinates(coordinates: Coordinates[], options?: FitOptions): void;
+}
+```
