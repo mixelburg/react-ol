@@ -29,6 +29,9 @@ jobs:
       - name: Build
         run: bun run --filter @mixelburg/react-ol build
 
+      - name: Copy llms.txt into package
+        run: cp llms.txt core/llms.txt
+
       - name: Configure npm auth
         run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
         env:
