@@ -10,6 +10,8 @@
     "api-map",
     "api-layers",
     "api-features",
-    "api-overlays"
+    "api-overlays",
+    "---AI",
+    "llms"
   ]
 }
