@@ -1,0 +1,41 @@
+---
+title: llms.txt
+description: Machine-readable documentation for AI assistants and LLM-powered tools
+---
+
+# llms.txt
+
+`@mixelburg/react-ol` provides an [`llms.txt`](https://llmstxt.org) file — a plain-text document designed to help AI assistants and LLM-powered tools (GitHub Copilot, Cursor, Claude, ChatGPT, etc.) understand and use this library correctly.
+
+## What is llms.txt?
+
+[llms.txt](https://llmstxt.org) is an emerging convention for open-source libraries and websites to expose a machine-readable summary of their API and usage — similar to how `robots.txt` guides web crawlers, but for AI models.
+
+When an AI assistant has access to your `llms.txt`, it can:
+- Generate correct, up-to-date code using the library
+- Answer questions about the API accurately
+- Avoid suggesting deprecated or wrong patterns
+
+## Files
+
+| File | URL | Description |
+|------|-----|-------------|
+| `llms.txt` | [/llms.txt](/react-ol/llms.txt) | Full API reference and usage examples in plain text |
+
+## Usage with AI Tools
+
+### Cursor / Windsurf
+
+Add the URL to your project context in `.cursor/rules` or docs settings:
+
+```
+https://mixelburg.github.io/react-ol/llms.txt
+```
+
+### ChatGPT / Claude
+
+Paste the contents of [`llms.txt`](https://mixelburg.github.io/react-ol/llms.txt) directly into your conversation, or instruct the AI to fetch it.
+
+### GitHub Copilot
+
+Copilot indexes public GitHub repositories automatically. The `llms.txt` in the repo root (`https://github.com/mixelburg/react-ol/blob/main/llms.txt`) will be picked up as additional context.
